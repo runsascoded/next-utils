@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "npm run clean && tsc && cp package.json README.md ./dist"
+    "build": "npm run clean && tsc && cp package.json README.md ./dist",
+    "postinstall": "postinstall.sh"
   },
   "dependencies": {
     "next": "12.3.3",
