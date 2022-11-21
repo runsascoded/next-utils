@@ -1,18 +1,7 @@
-// import styles from "./theme.module.css";
 import {ReactNode} from "react";
 import {default as NextHead} from "next/head"
-
-/*
-export const Divider = () => <hr className={styles.divider}/>
-
-export const Id = ({ children }: { children: string }) => <a id={children} />
-
-export const H2 = ({ id, link = true, children }: { id?: string, link?: boolean, children: ReactNode }) => {
-    return <h2 id={id} className={styles.header}>{
-        (id && link) ? <a href={`#${id}`}>{children}</a> : children
-    }</h2>
-}
-*/
+import React from "react";
+import getConfig from 'next/config'
 
 export type Head = {
     title: string
@@ -31,11 +20,14 @@ export function Head(
         type = 'website',
         url,
         thumbnail,
-        favicon = './favicon.ico',
+        favicon,
         twitterCard = 'summary_large_image',
         children,
     }: Head
 ) {
+    const { publicRuntimeConfig: config } = getConfig()
+    const { basePath = "" } = config
+    favicon = favicon || `${basePath}/favicon.ico`
     return (
         <NextHead>
             <title>{title}</title>
