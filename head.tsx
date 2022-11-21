@@ -20,7 +20,7 @@ export type Head = {
     type?: string
     url: string
     thumbnail: string
-    favicon: string
+    favicon?: string
     twitterCard?: string
     children?: ReactNode
 }
@@ -31,7 +31,7 @@ export function Head(
         type = 'website',
         url,
         thumbnail,
-        favicon,
+        favicon = './favicon.ico',
         twitterCard = 'summary_large_image',
         children,
     }: Head
