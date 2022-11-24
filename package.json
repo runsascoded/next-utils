@@ -4,25 +4,19 @@
   "type": "module",
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "npm run clean && tsc && cp package.json README.md dist/",
-    "postinstall": "postinstall.sh"
+    "build": "npm run clean && tsc && cp package.json README.md ./dist"
   },
   "dependencies": {
-    "@vanilla-extract/css": "^1.9.2",
     "next": "12.3.3",
     "react": "18.2.0",
     "react-dom": "18.2.0"
   },
   "devDependencies": {
-    "@types/node": "^18.11.9",
-    "@types/react": "^18.0.25",
-    "@types/react-dom": "^18.0.9",
-    "@vanilla-extract/webpack-plugin": "^2.2.0",
+    "@types/node": "18.11.9",
+    "@types/react": "18.0.25",
+    "@types/react-dom": "18.0.9",
     "eslint": "8.28.0",
     "eslint-config-next": "13.0.4",
-    "mini-css-extract-plugin": "^2.7.0",
-    "ts-loader": "^9.4.1",
-    "typescript": "^4.9.3",
-    "typescript-plugin-css-modules": "^3.4.0"
+    "typescript": "4.9.3"
   }
 }
