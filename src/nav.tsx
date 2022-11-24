@@ -1,5 +1,6 @@
 import React, {ReactNode, useEffect, useState} from "react";
-import defaultCss from "./nav.module.css"
+// import css from './nav.module.css'
+import css, {absolute} from './nav.css'
 
 export function toggleHamburger(id: string, open?: boolean) {
     const x = document.getElementById(id);
@@ -20,12 +21,9 @@ export type Menu = {
     sections?: Section[]
 } & Section
 
-type Css = { readonly [k: string]: string }
-
-export function Nav({ id, menus, css = defaultCss, children, }: {
+export function Nav({ id, menus, children, }: {
     id: string
     menus: Menu[]
-    css?: Css
     children?: ReactNode
 }) {
     const [scrollY, setScrollY] = useState(0);
@@ -41,14 +39,14 @@ export function Nav({ id, menus, css = defaultCss, children, }: {
                 // User scrolled down:
                 if (curScrollY < height) {
                     // begin edging nav offscreen if still at top of page
-                    nav.classList.add(css.absolute)
+                    nav.classList.add(absolute)
                     nav.style.top = `0`
                 } else {
                     // hide nav otherwise
                     nav.style.top = `-${height}px`;
                 }
             } else {
-                nav.classList.remove(css.absolute)
+                nav.classList.remove(absolute)
                 nav.style.top = "0";
             }
             //console.log("scroll:", scrollY, "→", curScrollY, "clickScroll:", clickScroll, "nav.style.top:", nav.style.top)
@@ -71,7 +69,7 @@ export function Nav({ id, menus, css = defaultCss, children, }: {
                             <button className={css.dropbtn}>Wards
                                 <i className="fa fa-caret-down"></i>
                             </button>
-                            <div className={css["dropdown-content"]}>{
+                            <div className={css.dropdownContent}>{
                                 sections.map(({ id, name }) => <a key={id} href={`#${id}`}>{name}</a>)
                             }
                             </div>
