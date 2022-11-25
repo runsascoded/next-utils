@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import css, { absolute } from './nav.css';
-import { dark } from './theme.css';
+import { dark } from './contract.css';
 export function Submenu({ name, sections }) {
     const [open, setOpen] = useState(false);
     return (React.createElement("div", { className: `${css.dropdown} ${css.menu} ${open ? css.open : ""}`, onMouseEnter: (e) => { console.log("dropdown onMouseEnter"); setOpen(true); e.stopPropagation(); }, onMouseLeave: (e) => { console.log("dropdown onMouseLeave"); setOpen(false); } },
@@ -10,7 +10,7 @@ export function Submenu({ name, sections }) {
             React.createElement("i", { className: "fa fa-caret-down" })),
         React.createElement("div", { className: css.dropdownContent }, sections.map(({ id, name }) => React.createElement("a", { key: id, href: `#${id}` }, name)))));
 }
-export function Nav({ id, className = dark, menus, children, }) {
+export function Nav({ id, classes = "", theme = dark, menus, children, }) {
     const [scrollY, setScrollY] = useState(0);
     const [clickScroll, setClickScroll] = useState(false);
     const [open, setOpen] = useState(false);
@@ -38,7 +38,7 @@ export function Nav({ id, className = dark, menus, children, }) {
         window.addEventListener('scroll', onScroll, { passive: true });
         return () => window.removeEventListener('scroll', onScroll);
     }, [clickScroll, setClickScroll, scrollY, setScrollY]);
-    return (React.createElement("div", { id: id, className: `${css.topnav} ${className} ${open ? css.open : ""}`, onClick: () => { console.log("nav onClick"); setOpen(!open); setClickScroll(true); }, onMouseEnter: () => { console.log("nav onMouseEnter"); setOpen(true); }, onMouseLeave: () => { console.log("nav onMouseLeave"); setOpen(false); } },
+    return (React.createElement("div", { id: id, className: `${css.topnav} ${classes} ${theme} ${open ? css.open : ""}`, onClick: () => { console.log("nav onClick"); setOpen(!open); setClickScroll(true); }, onMouseEnter: () => { console.log("nav onMouseEnter"); setOpen(true); }, onMouseLeave: () => { console.log("nav onMouseLeave"); setOpen(false); } },
         React.createElement("button", { key: "hamburger", className: css.hamburger }, "\u2630"),
         menus.map(({ id, name, sections }) => sections
             ? React.createElement(Submenu, { key: name, name: name, sections: sections })

@@ -1,6 +1,6 @@
-import {style, globalStyle, GlobalStyleRule, createThemeContract, createTheme} from '@vanilla-extract/css'
+import {globalStyle, GlobalStyleRule, style} from '@vanilla-extract/css'
 
-import { vars } from "./contract.css"
+import {vars} from "./contract.css"
 
 export const absolute = "absolute"
 export const active = "active"

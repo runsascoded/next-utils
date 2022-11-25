@@ -1,6 +1,6 @@
 import React, {ReactNode, useEffect, useState} from "react";
 import css, {absolute} from './nav.css'
-import {dark} from './theme.css'
+import {dark} from './contract.css'
 
 export type Section = {
     name: string
@@ -34,9 +34,10 @@ export function Submenu({ name, sections }: { name: string, sections: Section[],
     )
 }
 
-export function Nav({ id, className = dark, menus, children, }: {
+export function Nav({ id, classes = "", theme = dark, menus, children, }: {
     id: string
-    className?: string
+    classes?: string
+    theme?: string
     menus: Menu[]
     children?: ReactNode
 }) {
@@ -70,7 +71,7 @@ export function Nav({ id, className = dark, menus, children, }: {
     return (
         <div
             id={id}
-            className={`${css.topnav} ${className} ${open ? css.open : ""}`}
+            className={`${css.topnav} ${classes} ${theme} ${open ? css.open : ""}`}
             onClick={() => { console.log("nav onClick"); setOpen(!open); setClickScroll(true) }}
             onMouseEnter={() => { console.log("nav onMouseEnter"); setOpen(true) }}
             onMouseLeave={() => { console.log("nav onMouseLeave"); setOpen(false) }}

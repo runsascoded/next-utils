@@ -10,9 +10,10 @@ export declare function Submenu({ name, sections }: {
     name: string;
     sections: Section[];
 }): JSX.Element;
-export declare function Nav({ id, className, menus, children, }: {
+export declare function Nav({ id, classes, theme, menus, children, }: {
     id: string;
-    className?: string;
+    classes?: string;
+    theme?: string;
     menus: Menu[];
     children?: ReactNode;
 }): JSX.Element;
