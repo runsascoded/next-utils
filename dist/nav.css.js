@@ -1,22 +1,23 @@
 import { style, globalStyle } from '@vanilla-extract/css';
+import { vars } from "./contract.css";
 export const absolute = "absolute";
+export const active = "active";
 export const dropbtn = "dropbtn";
-export const icon = "icon";
+export const dropdown = "dropdown";
+export const dropdownContent = "dropdown-content";
+export const hamburger = "hamburger";
 export const menu = "menu";
+export const open = "open";
+export const logo = "logo";
 export const topnav = style({
-    backgroundColor: "black",
+    backgroundColor: vars.backgroundColor,
+    color: vars.color,
     position: "fixed",
     top: 0,
     width: "100%",
     transition: "top 0.3s",
     zIndex: 1,
-    '@media': {
-        'screen and (max-width: 800px)': {
-            width: "auto",
-        },
-    },
 });
-/* When the screen is less than 800 pixels wide, hide all links, except for the first one ("Home"). Show the link that contains should open and close the topnav (.icon) */
 // const maxHamburgerWidth = 800
 function media(selector, rule) {
     globalStyle(`${topnav}${selector}`, {
@@ -24,18 +25,33 @@ function media(selector, rule) {
             "screen and (max-width: 800px)": rule
         }
     });
+    globalStyle(`${topnav}.collapsed${selector}`, rule);
 }
-media(` button.${icon}`, {
-    backgroundColor: "transparent",
-    color: "white",
-    fontSize: "1.8em",
+media(``, {
+    width: "auto",
+    maxHeight: "100vh",
+    overflowY: "auto",
+});
+globalStyle(`${topnav} .${logo}`, {
+    maxWidth: "2em",
+    padding: "0.2em 0",
+});
+media(` .${logo}`, {
+    maxWidth: "3em",
+    paddingTop: "0",
+    paddingLeft: "0.5em",
+    paddingBottom: "0.5em",
+});
+media(` .${hamburger}`, {
+    fontSize: "2.2em",
+    padding: "0.2em 0.3em",
     //float: "left",
     display: "block",
 });
 media(` > .${menu}`, {
     display: "none",
 });
-media(`:hover > .${menu}`, {
+media(`.${open} > .${menu}`, {
     textAlign: "left",
     display: "block",
     float: "none",
@@ -43,42 +59,47 @@ media(`:hover > .${menu}`, {
 globalStyle(`${topnav}.${absolute}`, {
     position: "absolute"
 });
-globalStyle(`${topnav} a`, {
+globalStyle(`${topnav} a, ${topnav} button`, {
     float: "left",
     display: "block",
-    color: "#f2f2f2",
+    color: vars.linkColor,
+    backgroundColor: "transparent",
+    border: 0,
     textAlign: "center",
     padding: "14px 16px",
     textDecoration: "none",
-    fontSize: "17px",
+    fontSize: "1.3em",
+});
+media(`${topnav} a, ${topnav} button`, {
+    float: "none",
 });
 /* Add an active class to highlight the current page */
-export const active = style({
+globalStyle(`${topnav} .${active}`, {
     backgroundColor: "#04AA6D",
     color: "white",
 });
 /* Hide the link that should open and close the topnav on small screens */
-globalStyle(`${topnav} .${icon}`, {
+globalStyle(`${topnav} .${hamburger}`, {
     display: "none",
 });
 /* Dropdown container - needed to position the dropdown content */
-export const dropdown = style({
+globalStyle(`${topnav} .${dropdown}`, {
     float: "left",
     //overflow: "hidden",
 });
 /* Style the dropdown button to fit inside the topnav */
-globalStyle(`${dropdown} .${dropbtn}`, {
-    fontSize: "17px",
+globalStyle(`${topnav} .${dropdown} .${dropbtn}`, {
+    // fontSize: "17px",
     border: "none",
     outline: "none",
-    color: "white",
-    padding: "14px 16px",
+    // color: "white",
+    // padding: "14px 16px",
     backgroundColor: "inherit",
     fontFamily: "inherit",
     margin: "0",
 });
 /* Style the dropdown content (hidden by default) */
-export const dropdownContent = style({
+globalStyle(`${topnav} .${dropdownContent}`, {
     display: "none",
     position: "absolute",
     backgroundColor: "#f9f9f9",
@@ -87,7 +108,7 @@ export const dropdownContent = style({
     zIndex: "1",
 });
 /* Style the links inside the dropdown */
-globalStyle(`${dropdownContent} a`, {
+globalStyle(`${topnav} .${dropdownContent} a`, {
     float: "none",
     color: "black",
     padding: "12px 16px",
@@ -96,18 +117,18 @@ globalStyle(`${dropdownContent} a`, {
     textAlign: "left",
 });
 /* Add a dark background on topnav links and the dropdown button on hover */
-globalStyle(`${topnav} a:hover, ${dropdown}:hover .${dropbtn}`, {
+globalStyle(`${topnav} a:hover, .${dropdown}.${open} .${dropbtn}`, {
     backgroundColor: "#555",
     color: "white",
 });
 /* Add a grey background to dropdown links on hover */
-globalStyle(`${dropdownContent} a:hover`, {
+globalStyle(`${topnav} .${dropdownContent} a:hover`, {
     backgroundColor: "#ddd",
     color: "black",
 });
 /* Show the dropdown menu when the user moves the mouse over the dropdown button */
-globalStyle(`${dropdown}:hover ${dropdownContent}`, {
+globalStyle(`${topnav} .${dropdown}.${open} .${dropdownContent}`, {
     display: "block",
 });
-const module = { topnav, absolute, active, dropdown, icon, menu, dropbtn, dropdownContent, };
+const module = { absolute, active, dropbtn, dropdown, dropdownContent, hamburger, logo, menu, open, topnav, };
 export default module;

@@ -1,14 +1,18 @@
 import { ReactNode } from "react";
-export declare function toggleHamburger(id: string, open?: boolean): void;
 export type Section = {
     name: string;
     id: string;
 };
-export type Menu = {
+export type Menu = Section & {
     sections?: Section[];
-} & Section;
-export declare function Nav({ id, menus, children, }: {
+};
+export declare function Submenu({ name, sections }: {
+    name: string;
+    sections: Section[];
+}): JSX.Element;
+export declare function Nav({ id, className, menus, children, }: {
     id: string;
+    className?: string;
     menus: Menu[];
     children?: ReactNode;
 }): JSX.Element;
