@@ -16,7 +16,7 @@ export const topnav = style({
     top: 0,
     width: "100%",
     transition: "top 0.3s",
-    zIndex: 1,
+    zIndex: 10,
 });
 // const maxHamburgerWidth = 800
 function media(selector, rule) {

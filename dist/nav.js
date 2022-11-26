@@ -16,7 +16,7 @@ export function Nav({ id, classes = "", theme = dark, menus, children, }) {
     const [open, setOpen] = useState(false);
     useEffect(() => {
         const onScroll = () => {
-            const nav = document === null || document === void 0 ? void 0 : document.getElementById(id);
+            const nav = document?.getElementById(id);
             if (!nav)
                 return;
             const height = nav.offsetHeight;

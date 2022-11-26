@@ -10,9 +10,13 @@
     "@vanilla-extract/css": "^1.9.2",
     "next": "12.3.3",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "react-markdown": "^8.0.3",
+    "rehype-raw": "^6.1.1",
+    "remark-gfm": "^3.0.1"
   },
   "devDependencies": {
+    "@types/mdx": "^2.0.3",
     "@types/node": "^18.11.9",
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.9",

@@ -19,7 +19,7 @@ export const topnav = style({
     top: 0, /* Stay on top */
     width: "100%", /* Full width */
     transition: "top 0.3s", /* Transition effect when sliding down (and up) */
-    zIndex: 1,
+    zIndex: 10,
 });
 
 // const maxHamburgerWidth = 800
