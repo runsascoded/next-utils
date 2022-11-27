@@ -2,7 +2,7 @@ import { default as NextHead } from "next/head";
 import React from "react";
 import getConfig from 'next/config';
 export function Head({ title, description, type = 'website', url, thumbnail, favicon, twitterCard = 'summary_large_image', children, }) {
-    const { publicRuntimeConfig: config } = getConfig();
+    const { publicRuntimeConfig: config = {} } = getConfig();
     const { basePath = "" } = config;
     favicon = favicon || `${basePath}/favicon.ico`;
     return (React.createElement(NextHead, null,

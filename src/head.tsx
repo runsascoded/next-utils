@@ -25,7 +25,7 @@ export function Head(
         children,
     }: Head
 ) {
-    const { publicRuntimeConfig: config } = getConfig()
+    const { publicRuntimeConfig: config = {} } = getConfig()
     const { basePath = "" } = config
     favicon = favicon || `${basePath}/favicon.ico`
     return (
