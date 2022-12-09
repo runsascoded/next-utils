@@ -1,4 +1,4 @@
-import React, {ReactNode, useEffect, useState} from "react";
+import React, {MouseEvent, MouseEventHandler, ReactNode, useEffect, useState} from "react";
 import css, {absolute} from './nav.css'
 import {dark} from './contract.css'
 
@@ -10,19 +10,24 @@ export type Menu = Section & {
     sections?: Section[]
 }
 
-export function Submenu({ name, sections }: { name: string, sections: Section[], }) {
-    const [open, setOpen] = useState(false)
+export function Submenu({ name, sections, hover = true, log }: { name: string, sections: Section[], hover?: boolean, log?: boolean }) {
+    const [open, setOpen] = useState("")
+    const onMouseEnter: MouseEventHandler<HTMLDivElement> = ((e: MouseEvent<HTMLDivElement>) => { log && console.log("dropdown onMouseEnter"); setOpen(hover ? css.open : css.hover) ; e.stopPropagation()})
+    const onMouseLeave: MouseEventHandler<HTMLDivElement> = ((e: MouseEvent<HTMLDivElement>) => { log && console.log("dropdown onMouseLeave"); setOpen("") })
     return (
         <div
-            className={`${css.dropdown} ${css.menu} ${open ? css.open : ""}`}
-            onMouseEnter={(e) => { console.log("dropdown onMouseEnter"); setOpen(true) ; e.stopPropagation()}}
-            onMouseLeave={(e) => { console.log("dropdown onMouseLeave"); setOpen(false) }}
+            className={`${css.dropdown} ${css.menu} ${open}`}
+            {...{ onMouseEnter, onMouseLeave }}
         >
             <button
                 className={css.dropbtn}
-                onClick={e => { console.log("dropdown onClick"); e.stopPropagation(); setOpen(!open) } }
+                onClick={e => {
+                    log && console.log("dropdown onClick")
+                    e.stopPropagation()
+                    setOpen(open == css.open ? "" : css.open)
+                }}
             >
-                {name} <i className="fa fa-caret-down" />
+                {name} <i className={`fa fa-caret-${open == css.open ? "down" : "right"}`} />
             </button>
             <div className={css.dropdownContent}>{
                 sections.map(
@@ -34,11 +39,13 @@ export function Submenu({ name, sections }: { name: string, sections: Section[],
     )
 }
 
-export function Nav({ id, classes = "", theme = dark, menus, children, }: {
+export function Nav({ id, classes = "", theme = dark, menus, hover, log, children, }: {
     id: string
     classes?: string
     theme?: string
     menus: Menu[]
+    hover?: boolean
+    log?: boolean
     children?: ReactNode
 }) {
     const [scrollY, setScrollY] = useState(0);
@@ -72,15 +79,15 @@ export function Nav({ id, classes = "", theme = dark, menus, children, }: {
         <div
             id={id}
             className={`${css.topnav} ${classes} ${theme} ${open ? css.open : ""}`}
-            onClick={() => { console.log("nav onClick"); setOpen(!open); setClickScroll(true) }}
-            onMouseEnter={() => { console.log("nav onMouseEnter"); setOpen(true) }}
-            onMouseLeave={() => { console.log("nav onMouseLeave"); setOpen(false) }}
+            onClick={() => { log && console.log("nav onClick"); setOpen(!open); setClickScroll(true) }}
+            onMouseEnter={() => { log && console.log("nav onMouseEnter"); setOpen( true) }}
+            onMouseLeave={() => { log && console.log("nav onMouseLeave"); setOpen(false) }}
         >
             <button key={"hamburger"} className={css.hamburger}>&#9776;</button>
             {
                 menus.map(({ id, name, sections }) =>
                     sections
-                        ? <Submenu key={name} name={name} sections={sections} />
+                        ? <Submenu key={name} name={name} sections={sections} hover={hover} log={log} />
                         : <a key={name} href={`#${id}`} className={css.menu}>{name}</a>
                 )
             }

@@ -10,6 +10,7 @@ export const dropdownContent = "dropdown-content"
 export const hamburger = "hamburger"
 export const menu = "menu"
 export const open = "open"
+export const hover = "hover"
 export const logo = "logo"
 
 export const topnav = style({
@@ -137,7 +138,7 @@ globalStyle(`${topnav} .${dropdownContent} a`, {
 })
 
 /* Add a dark background on topnav links and the dropdown button on hover */
-globalStyle(`${topnav} a:hover, .${dropdown}.${open} .${dropbtn}`, {
+globalStyle(`${topnav} a:hover, .${dropdown}.${open} .${dropbtn}, .${dropdown}.${hover} .${dropbtn}`, {
     backgroundColor: "#555",
     color: "white",
 })
@@ -153,5 +154,5 @@ globalStyle(`${topnav} .${dropdown}.${open} .${dropdownContent}`, {
     display: "block",
 })
 
-const module = { absolute, active, dropbtn, dropdown, dropdownContent, hamburger, logo, menu, open, topnav, }
+const module = { absolute, active, dropbtn, dropdown, dropdownContent, hamburger, hover, logo, menu, open, topnav, }
 export default module
