@@ -17,4 +17,11 @@ export const svg = "svg";
 globalStyle(`${socials} .${svg}`, {
     width: "3em",
 });
-//export default { socials, social, logo }
+globalStyle(`.${socials} path, .${socials} polygon`, {
+    fill: "black",
+    "@media": {
+        "(prefers-color-scheme: dark)": {
+            fill: "white",
+        }
+    }
+});
