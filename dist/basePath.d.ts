@@ -1,1 +1,1 @@
-export declare function useBasePath(): any;
+export declare function getBasePath(): any;
