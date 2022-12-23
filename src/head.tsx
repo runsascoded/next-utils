@@ -1,7 +1,6 @@
-import {ReactNode} from "react";
+import React, {ReactNode} from "react";
 import {default as NextHead} from "next/head"
-import React from "react";
-import getConfig from 'next/config'
+import {getBasePath} from "./basePath";
 
 export type Head = {
     title: string
@@ -25,8 +24,7 @@ export function Head(
         children,
     }: Head
 ) {
-    const { publicRuntimeConfig: config = {} } = getConfig()
-    const { basePath = "" } = config
+    const basePath = getBasePath()
     favicon = favicon || `${basePath}/favicon.ico`
     return (
         <NextHead>

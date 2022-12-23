@@ -1,9 +1,8 @@
-import { default as NextHead } from "next/head";
 import React from "react";
-import getConfig from 'next/config';
+import { default as NextHead } from "next/head";
+import { getBasePath } from "./basePath";
 export function Head({ title, description, type = 'website', url, thumbnail, favicon, twitterCard = 'summary_large_image', children, }) {
-    const { publicRuntimeConfig: config = {} } = getConfig();
-    const { basePath = "" } = config;
+    const basePath = getBasePath();
     favicon = favicon || `${basePath}/favicon.ico`;
     return (React.createElement(NextHead, null,
         React.createElement("title", null, title),
