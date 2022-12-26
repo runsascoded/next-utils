@@ -3,9 +3,30 @@ import Image from "next/image";
 import dynamic from "next/dynamic";
 import * as css from "./plot.css";
 const Plotly = dynamic(() => import("react-plotly.js"), { ssr: false });
+import { fromEntries, o2a } from "./objs";
 export const DEFAULT_MARGIN = { t: 0, r: 15, b: 0, l: 0 };
 export const DEFAULT_WIDTH = 800;
 export const DEFAULT_HEIGHT = 450;
+export function build(specs, plots) {
+    const plotSpecDict = fromEntries(specs.map(spec => [spec.id, spec]));
+    return o2a(plots, (id, plot) => {
+        const spec = plotSpecDict[id];
+        let title = spec.title;
+        if (!title) {
+            const plotTitle = plot.layout.title;
+            if (typeof plotTitle === 'string') {
+                title = plotTitle;
+            }
+            else if (plotTitle?.text) {
+                title = plotTitle.text;
+            }
+            else {
+                throw `No title found for plot ${id}`;
+            }
+        }
+        return { ...spec, title, plot, };
+    });
+}
 export function Plot({ id, title, subtitle, plot, width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT, src, margin, basePath, data, children, }) {
     const [initialized, setInitialized] = useState(false);
     const { data: plotData, layout, style } = plot;

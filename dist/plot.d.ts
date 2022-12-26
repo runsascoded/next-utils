@@ -4,7 +4,7 @@ import { Layout, Legend, Margin } from "plotly.js";
 export type NodeArg<T> = Partial<Layout> & T;
 export type NodeFn<T> = (t: NodeArg<T>) => ReactNode;
 export type Node<T> = ReactNode | NodeFn<T>;
-export type PlotSpec<T> = {
+export type PlotSpec<T = {}> = {
     id: string;
     name: string;
     menuName?: string;
@@ -16,7 +16,7 @@ export type PlotSpec<T> = {
     subtitle?: Node<T>;
     children?: Node<T>;
 };
-export type Plot<T> = PlotSpec<T> & {
+export type Plot<T = {}> = PlotSpec<T> & {
     plot: PlotParams;
     title: string;
     margin?: Partial<Margin>;
@@ -33,4 +33,7 @@ export declare const DEFAULT_MARGIN: {
 };
 export declare const DEFAULT_WIDTH = 800;
 export declare const DEFAULT_HEIGHT = 450;
-export declare function Plot<T>({ id, title, subtitle, plot, width, height, src, margin, basePath, data, children, }: Plot<T>): JSX.Element;
+export declare function build<T = {}>(specs: PlotSpec<T>[], plots: {
+    [id: string]: PlotParams;
+}): Plot<T>[];
+export declare function Plot<T = {}>({ id, title, subtitle, plot, width, height, src, margin, basePath, data, children, }: Plot<T>): JSX.Element;

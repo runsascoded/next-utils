@@ -12,19 +12,26 @@
     "@next/mdx": "^13.0.5",
     "@vanilla-extract/css": "^1.9.2",
     "@vanilla-extract/next-plugin": "^2.1.1",
+    "lodash": "^4.17.21",
     "next": "^12.3.3",
     "next-transpile-modules": "^10.0.0",
+    "node-fetch": "^2.6.1",
+    "plotly.js": "^1.44.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-markdown": "^8.0.3",
-    "remark-gfm": "^3.0.1",
-    "rehype-raw": "^6.1.1"
+    "react-plotly.js": "^2.5.1",
+    "rehype-raw": "^6.1.1",
+    "remark-gfm": "^3.0.1"
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.191",
     "@types/mdx": "^2.0.3",
     "@types/node": "^18.11.9",
+    "@types/node-fetch": "^2.6.2",
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.9",
+    "@types/react-plotly.js": "^2.5.2",
     "eslint": "8.28.0",
     "eslint-config-next": "13.0.4",
     "typescript": "^4.9.3"

@@ -5,12 +5,13 @@ import * as css from "./plot.css"
 import {PlotParams} from "react-plotly.js";
 import {Layout, Legend, Margin} from "plotly.js";
 const Plotly = dynamic(() => import("react-plotly.js"), { ssr: false })
+import {fromEntries, o2a} from "./objs"
 
 export type NodeArg<T> = Partial<Layout> & T
 export type NodeFn<T> = (t: NodeArg<T>) => ReactNode
 export type Node<T> = ReactNode | NodeFn<T>
 
-export type PlotSpec<T> = {
+export type PlotSpec<T = {}> = {
     id: string
     name: string
     menuName?: string
@@ -23,7 +24,7 @@ export type PlotSpec<T> = {
     children?: Node<T>
 }
 
-export type Plot<T> = PlotSpec<T> & {
+export type Plot<T = {}> = PlotSpec<T> & {
     plot: PlotParams
     title: string
     margin?: Partial<Margin>
@@ -37,7 +38,26 @@ export const DEFAULT_MARGIN = { t: 0, r: 15, b: 0, l: 0 }
 export const DEFAULT_WIDTH = 800
 export const DEFAULT_HEIGHT = 450
 
-export function Plot<T>(
+export function build<T = {}>(specs: PlotSpec<T>[], plots: { [id: string]: PlotParams }): Plot<T>[] {
+    const plotSpecDict: { [id: string]: PlotSpec<T> } = fromEntries(specs.map(spec => [ spec.id, spec ]))
+    return o2a(plots, (id, plot) => {
+        const spec = plotSpecDict[id]
+        let title = spec.title
+        if (!title) {
+            const plotTitle = plot.layout.title
+            if (typeof plotTitle === 'string') {
+                title = plotTitle
+            } else if (plotTitle?.text) {
+                title = plotTitle.text
+            } else {
+                throw `No title found for plot ${id}`
+            }
+        }
+        return { ...spec, title, plot, }
+    })
+}
+
+export function Plot<T = {}>(
     {
         id, title, subtitle, plot,
         width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT,
