@@ -16,9 +16,11 @@
     "next": "^12.3.3",
     "next-transpile-modules": "^10.0.0",
     "node-fetch": "^2.6.1",
+    "plotly.js": "^1.44.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-markdown": "^8.0.3",
+    "react-plotly.js": "^2.5.1",
     "rehype-raw": "^6.1.1",
     "remark-gfm": "^3.0.1"
   },
@@ -29,6 +31,7 @@
     "@types/node-fetch": "^2.6.2",
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.9",
+    "@types/react-plotly.js": "^2.5.2",
     "eslint": "8.28.0",
     "eslint-config-next": "13.0.4",
     "typescript": "^4.9.3"
