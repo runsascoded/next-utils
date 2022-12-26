@@ -6,7 +6,7 @@ export type NodeFn<T> = (t: NodeArg<T>) => ReactNode;
 export type Node<T> = ReactNode | NodeFn<T>;
 export type PlotSpec<T = {}> = {
     id: string;
-    name: string;
+    name?: string;
     menuName?: string;
     dropdownSection?: string;
     title?: string;
@@ -36,4 +36,4 @@ export declare const DEFAULT_HEIGHT = 450;
 export declare function build<T = {}>(specs: PlotSpec<T>[], plots: {
     [id: string]: PlotParams;
 }): Plot<T>[];
-export declare function Plot<T = {}>({ id, title, subtitle, plot, width, height, src, margin, basePath, data, children, }: Plot<T>): JSX.Element;
+export declare function Plot<T = {}>({ id, name, title, subtitle, plot, width, height, src, margin, basePath, data, children, }: Plot<T>): JSX.Element;

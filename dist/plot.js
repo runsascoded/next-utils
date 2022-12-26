@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import * as css from "./plot.css";
 const Plotly = dynamic(() => import("react-plotly.js"), { ssr: false });
 import { fromEntries, o2a } from "./objs";
+import { getBasePath } from "./basePath";
 export const DEFAULT_MARGIN = { t: 0, r: 15, b: 0, l: 0 };
 export const DEFAULT_WIDTH = 800;
 export const DEFAULT_HEIGHT = 450;
@@ -27,18 +28,23 @@ export function build(specs, plots) {
         return { ...spec, title, plot, };
     });
 }
-export function Plot({ id, title, subtitle, plot, width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT, src, margin, basePath, data, children, }) {
+export function Plot({ id, name, title, subtitle, plot, width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT, src, margin, basePath, data, children, }) {
     const [initialized, setInitialized] = useState(false);
     const { data: plotData, layout, style } = plot;
     const { title: plotTitle, margin: plotMargin, xaxis, yaxis, ...rest } = layout;
     if (!data && (subtitle instanceof Function || children instanceof Function)) {
         console.warn("`data` missing for subtitle/children functions:", data, subtitle, children);
     }
+    basePath = basePath || getBasePath() || "";
     const nodeArg = { ...layout, ...(data || {}) };
     const renderedSubtitle = subtitle instanceof Function ? subtitle(nodeArg) : subtitle;
     const renderedChildren = children instanceof Function ? children(nodeArg) : children;
     height = style?.height || height;
     margin = { ...DEFAULT_MARGIN, ...plotMargin, ...margin };
+    name = name || id;
+    if (src === undefined) {
+        src = `plots/${name}.png`;
+    }
     return (React.createElement("div", { id: id, key: id, className: css.plot },
         React.createElement("h2", null,
             React.createElement("a", { href: `#${id}` }, title)),

@@ -6,6 +6,7 @@ import {PlotParams} from "react-plotly.js";
 import {Layout, Legend, Margin} from "plotly.js";
 const Plotly = dynamic(() => import("react-plotly.js"), { ssr: false })
 import {fromEntries, o2a} from "./objs"
+import {getBasePath} from "./basePath";
 
 export type NodeArg<T> = Partial<Layout> & T
 export type NodeFn<T> = (t: NodeArg<T>) => ReactNode
@@ -13,7 +14,7 @@ export type Node<T> = ReactNode | NodeFn<T>
 
 export type PlotSpec<T = {}> = {
     id: string
-    name: string
+    name?: string
     menuName?: string
     dropdownSection?: string,
     title?: string  // taken from plot, by default
@@ -59,7 +60,7 @@ export function build<T = {}>(specs: PlotSpec<T>[], plots: { [id: string]: PlotP
 
 export function Plot<T = {}>(
     {
-        id, title, subtitle, plot,
+        id, name, title, subtitle, plot,
         width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT,
         src, margin,
         basePath, data,
@@ -79,11 +80,16 @@ export function Plot<T = {}>(
     if (!data && (subtitle instanceof Function || children instanceof Function)) {
         console.warn("`data` missing for subtitle/children functions:", data, subtitle, children)
     }
+    basePath = basePath || getBasePath() || ""
     const nodeArg: NodeArg<T> = { ...layout, ...(data || {} as T) }
     const renderedSubtitle = subtitle instanceof Function ? subtitle(nodeArg) : subtitle
     const renderedChildren = children instanceof Function ? children(nodeArg) : children
     height = style?.height || height
     margin = { ...DEFAULT_MARGIN, ...plotMargin, ...margin }
+    name = name || id
+    if (src === undefined) {
+        src = `plots/${name}.png`
+    }
     return (
         <div id={id} key={id} className={css.plot}>
             <h2><a href={`#${id}`}>{title}</a></h2>
