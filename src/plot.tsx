@@ -4,13 +4,16 @@ import dynamic from "next/dynamic";
 import * as css from "./plot.css"
 import {PlotParams} from "react-plotly.js";
 import {Layout, Legend, Margin} from "plotly.js";
-const Plotly = dynamic(() => import("react-plotly.js"), { ssr: false })
 import {fromEntries, o2a} from "./objs"
 import {getBasePath} from "./basePath";
+
+const Plotly = dynamic(() => import("react-plotly.js"), { ssr: false })
 
 export type NodeArg<T> = Partial<Layout> & T
 export type NodeFn<T> = (t: NodeArg<T>) => ReactNode
 export type Node<T> = ReactNode | NodeFn<T>
+
+export type PlotsDict = { [id: string]: PlotParams }
 
 export type PlotSpec<T = {}> = {
     id: string

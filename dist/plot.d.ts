@@ -4,6 +4,9 @@ import { Layout, Legend, Margin } from "plotly.js";
 export type NodeArg<T> = Partial<Layout> & T;
 export type NodeFn<T> = (t: NodeArg<T>) => ReactNode;
 export type Node<T> = ReactNode | NodeFn<T>;
+export type PlotsDict = {
+    [id: string]: PlotParams;
+};
 export type PlotSpec<T = {}> = {
     id: string;
     name?: string;
