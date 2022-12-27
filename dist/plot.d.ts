@@ -38,5 +38,5 @@ export declare const DEFAULT_WIDTH = 800;
 export declare const DEFAULT_HEIGHT = 450;
 export declare function build<T = {}>(specs: PlotSpec<T>[], plots: {
     [id: string]: PlotParams;
-}): Plot<T>[];
+}, data: T): Plot<T>[];
 export declare function Plot<T = {}>({ id, name, title, subtitle, plot, width, height, src, margin, basePath, data, children, }: Plot<T>): JSX.Element;

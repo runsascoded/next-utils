@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 if [ -z "$NEXT_UTILS_HOME" ]; then
     NEXT_UTILS_HOME=next-utils
     for _ in 1 2 3; do
@@ -20,4 +22,6 @@ popd
 
 url="https://gitpkg.now.sh/runsascoded/next-utils/dist?$sha"
 echo "Setting \"next-utils\": \"$url\""
-cat package.json | jq --indent 4 ".dependencies.\"next-utils\" = \"$url\"" > package.json.new && mv package.json{.new,}
+cat package.json | jq --indent 4 ".dependencies.\"next-utils\" = \"$url\"" > package.json.new
+mv package.json{.new,}
+npm install

@@ -42,7 +42,7 @@ export const DEFAULT_MARGIN = { t: 0, r: 15, b: 0, l: 0 }
 export const DEFAULT_WIDTH = 800
 export const DEFAULT_HEIGHT = 450
 
-export function build<T = {}>(specs: PlotSpec<T>[], plots: { [id: string]: PlotParams }): Plot<T>[] {
+export function build<T = {}>(specs: PlotSpec<T>[], plots: { [id: string]: PlotParams }, data: T): Plot<T>[] {
     const plotSpecDict: { [id: string]: PlotSpec<T> } = fromEntries(specs.map(spec => [ spec.id, spec ]))
     return o2a(plots, (id, plot) => {
         const spec = plotSpecDict[id]
@@ -57,7 +57,7 @@ export function build<T = {}>(specs: PlotSpec<T>[], plots: { [id: string]: PlotP
                 throw `No title found for plot ${id}`
             }
         }
-        return { ...spec, title, plot, }
+        return { ...spec, title, plot, data }
     })
 }
 

@@ -8,7 +8,7 @@ const Plotly = dynamic(() => import("react-plotly.js"), { ssr: false });
 export const DEFAULT_MARGIN = { t: 0, r: 15, b: 0, l: 0 };
 export const DEFAULT_WIDTH = 800;
 export const DEFAULT_HEIGHT = 450;
-export function build(specs, plots) {
+export function build(specs, plots, data) {
     const plotSpecDict = fromEntries(specs.map(spec => [spec.id, spec]));
     return o2a(plots, (id, plot) => {
         const spec = plotSpecDict[id];
@@ -25,7 +25,7 @@ export function build(specs, plots) {
                 throw `No title found for plot ${id}`;
             }
         }
-        return { ...spec, title, plot, };
+        return { ...spec, title, plot, data };
     });
 }
 export function Plot({ id, name, title, subtitle, plot, width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT, src, margin, basePath, data, children, }) {
