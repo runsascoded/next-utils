@@ -133,6 +133,7 @@ export function numberArrayParam(
         },
         decode(value: string | undefined): number[] {
             if (value === undefined) return defaultValue
+            if (value === '') return []
             return value.split(',').map(parseInt)
         },
     }

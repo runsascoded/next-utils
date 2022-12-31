@@ -107,6 +107,8 @@ export function numberArrayParam(defaultValue = []) {
         decode(value) {
             if (value === undefined)
                 return defaultValue;
+            if (value === '')
+                return [];
             return value.split(',').map(parseInt);
         },
     };
