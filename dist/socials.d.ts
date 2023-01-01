@@ -17,11 +17,11 @@ export type Site = {
     alt?: string;
 };
 export declare const site: ({ name, user, title, domain, src, href, alt, }: Site) => Social;
-export declare const GitHubSvg: JSX.Element;
+export declare function GitHubSvg(className?: string): JSX.Element;
 export declare const TwitterSvg: JSX.Element;
 export declare const InstagramSvg: JSX.Element;
 export declare const YouTubeSvg: JSX.Element;
-export declare const GitHub: (user: string, rest?: Partial<Site>) => Social;
+export declare const GitHub: (user: string, className?: string, rest?: Partial<Site>) => Social;
 export declare const Twitter: (user: string, rest?: Partial<Site>) => Social;
 export declare const YouTube: (user: string, rest?: Partial<Site>) => Social;
 export declare const Instagram: (user: string, rest?: Partial<Site>) => Social;
