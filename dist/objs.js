@@ -3,6 +3,15 @@ export const Arr = Array.from;
 export function o2a(o, fn) {
     return entries(o).map(([k, v], idx) => fn(k, v, idx));
 }
+export function isSorted(vs) {
+    let prv = null;
+    for (let cur of vs) {
+        if (prv !== null && cur < prv)
+            return false;
+        prv = cur;
+    }
+    return true;
+}
 export const concat = (arrays) => [].concat(...arrays);
 export function order(u) {
     return keys(u).sort().reduce((o, k) => {

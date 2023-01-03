@@ -2,8 +2,17 @@ export const { entries, values, keys, fromEntries } = Object
 
 export const Arr = Array.from
 
-export function o2a<K extends string, V, W>(o: { [k in K]: V }, fn: (k: K, v: V, idx: number) => W): W[] {
+export function o2a<K extends string | number, V, W>(o: { [k in K]: V }, fn: (k: K, v: V, idx: number) => W): W[] {
     return entries<V>(o).map(([ k, v ], idx) => fn(k as K, v, idx))
+}
+
+export function isSorted<T>(vs: T[]): boolean {
+    let prv: T | null = null
+    for (let cur of vs) {
+        if (prv !== null && cur < prv) return false
+        prv = cur
+    }
+    return true
 }
 
 export const concat = <T>(arrays: T[][]): T[] => ([] as T[]).concat(...arrays)
