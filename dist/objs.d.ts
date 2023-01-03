@@ -23,9 +23,10 @@ export declare const Arr: {
     <T_2>(iterable: Iterable<T_2> | ArrayLike<T_2>): T_2[];
     <T_3, U_1>(iterable: Iterable<T_3> | ArrayLike<T_3>, mapfn: (v: T_3, k: number) => U_1, thisArg?: any): U_1[];
 };
-export declare function o2a<K extends string, V, W>(o: {
+export declare function o2a<K extends string | number, V, W>(o: {
     [k in K]: V;
 }, fn: (k: K, v: V, idx: number) => W): W[];
+export declare function isSorted<T>(vs: T[]): boolean;
 export declare const concat: <T>(arrays: T[][]) => T[];
 export declare function order<T>(u: {
     [k: string]: T;
