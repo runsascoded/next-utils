@@ -7,9 +7,9 @@ export function o2a<K extends string | number, V, W>(o: { [k in K]: V }, fn: (k:
 }
 
 export function isSorted<T>(vs: T[]): boolean {
-    let prv: T | null = null
+    let prv: T | undefined | null = null
     for (let cur of vs) {
-        if (prv !== null && cur < prv) return false
+        if (prv !== undefined && prv !== null && cur < prv) return false
         prv = cur
     }
     return true

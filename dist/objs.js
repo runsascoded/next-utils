@@ -6,7 +6,7 @@ export function o2a(o, fn) {
 export function isSorted(vs) {
     let prv = null;
     for (let cur of vs) {
-        if (prv !== null && cur < prv)
+        if (prv !== undefined && prv !== null && cur < prv)
             return false;
         prv = cur;
     }
