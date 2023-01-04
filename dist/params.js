@@ -131,6 +131,7 @@ export function llParam({ init, places, push }) {
 }
 export function parseQueryParams({ params }) {
     const router = useRouter();
+    const { isReady } = router;
     const path = router.asPath;
     const searchStr = path.replace(pathnameRegex, '');
     const searchObj = Object.fromEntries(new URLSearchParams(searchStr).entries());
@@ -138,7 +139,6 @@ export function parseQueryParams({ params }) {
         const [val, set] = useState(param.decode(searchObj[k]));
         return [k, { val, set, param }];
     }));
-    const setters = Object.values(state).map(({ set }) => set);
     useEffect(() => {
         window.onpopstate = e => {
             const newUrl = e.state.url;
@@ -157,6 +157,10 @@ export function parseQueryParams({ params }) {
         };
     }, [path,]);
     useEffect(() => {
+        if (!isReady) {
+            console.log("Skipping state initialization, router !isReady");
+            return;
+        }
         console.log("updating states: path", path, ", searchStr:", searchStr);
         //const newSearchObj = Object.fromEntries(new URLSearchParams(searchStr).entries())
         Object.entries(params).forEach(([k, param]) => {
@@ -168,7 +172,7 @@ export function parseQueryParams({ params }) {
                 set(val);
             }
         });
-    }, [path,]);
+    }, [path, isReady]);
     const match = path.match(pathnameRegex);
     const pathname = match ? match[0] : path;
     const query = {};

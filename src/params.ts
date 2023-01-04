@@ -162,6 +162,7 @@ export function llParam({ init, places, push }: { init: LL, places?: number, pus
 
 export function parseQueryParams<Params extends { [k: string]: Param<any> }, ParsedParams>({ params }: { params: Params }): ParsedParams {
     const router = useRouter()
+    const { isReady } = router
     const path = router.asPath
     const searchStr = path.replace(pathnameRegex, '')
     const searchObj = Object.fromEntries(new URLSearchParams(searchStr).entries())
@@ -171,7 +172,6 @@ export function parseQueryParams<Params extends { [k: string]: Param<any> }, Par
             return [ k, { val, set, param } ]
         })
     )
-    const setters = Object.values(state).map(({ set }) => set)
 
     useEffect(
         () => {
@@ -196,6 +196,10 @@ export function parseQueryParams<Params extends { [k: string]: Param<any> }, Par
 
     useEffect(
         () => {
+            if (!isReady) {
+                console.log("Skipping state initialization, router !isReady")
+                return
+            }
             console.log("updating states: path", path, ", searchStr:", searchStr)
             //const newSearchObj = Object.fromEntries(new URLSearchParams(searchStr).entries())
             Object.entries(params).forEach(([ k, param ]) => {
@@ -208,7 +212,7 @@ export function parseQueryParams<Params extends { [k: string]: Param<any> }, Par
                 }
             })
         },
-        [ path, ]
+        [ path, isReady ]
     );
 
     const match = path.match(pathnameRegex);
