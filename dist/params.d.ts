@@ -1,5 +1,6 @@
 import { Dispatch } from "react";
 export declare const pathnameRegex: RegExp;
+export declare const pathQueryRegex: RegExp;
 export type Param<T> = {
     encode: (t: T) => string | undefined;
     decode: (v: string | undefined) => T;

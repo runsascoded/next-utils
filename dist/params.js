@@ -2,6 +2,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import _ from "lodash";
 export const pathnameRegex = /[^?#]+/u;
+export const pathQueryRegex = /[^#]+/u;
 export function stringParam(push = true) {
     return {
         encode: v => v,
@@ -131,12 +132,12 @@ export function llParam({ init, places, push }) {
 }
 export function parseQueryParams({ params }) {
     const router = useRouter();
-    const { isReady } = router;
+    const { isReady, query } = router;
     const path = router.asPath;
     const searchStr = path.replace(pathnameRegex, '');
-    const searchObj = Object.fromEntries(new URLSearchParams(searchStr).entries());
     const state = Object.fromEntries(Object.entries(params).map(([k, param]) => {
-        const [val, set] = useState(param.decode(searchObj[k]));
+        const init = param.decode(undefined);
+        const [val, set] = useState(init);
         return [k, { val, set, param }];
     }));
     useEffect(() => {
@@ -164,7 +165,9 @@ export function parseQueryParams({ params }) {
         console.log("updating states: path", path, ", searchStr:", searchStr);
         //const newSearchObj = Object.fromEntries(new URLSearchParams(searchStr).entries())
         Object.entries(params).forEach(([k, param]) => {
-            const val = param.decode(searchObj[k]);
+            const qv = query[k];
+            const qval = (qv && qv instanceof Array) ? qv[0] : qv;
+            const val = param.decode(qval);
             const { val: cur, set } = state[k];
             const eq = _.isEqual(cur, val);
             if (!eq) {
@@ -175,25 +178,29 @@ export function parseQueryParams({ params }) {
     }, [path, isReady]);
     const match = path.match(pathnameRegex);
     const pathname = match ? match[0] : path;
-    const query = {};
-    Object.entries(state).map(([k, { val, param, }]) => {
+    const stateQuery = {};
+    Object.entries(state).forEach(([k, { val, param, }]) => {
         const s = param.encode(val);
         if (s !== undefined) {
-            query[k] = s;
+            stateQuery[k] = s;
         }
     });
-    const search = new URLSearchParams(query).toString();
-    console.log(`path: ${path}, searchStr: ${searchStr}, searchObj: `, searchObj, `, search: ${search}, query:`, query);
+    const search = new URLSearchParams(stateQuery).toString();
+    console.log(`path: ${path}, searchStr: ${searchStr}, query: `, query, `, search: ${search}, stateQuery:`, stateQuery);
     useEffect(() => {
+        if (!isReady) {
+            console.log("Skipping url update!! router !isReady");
+            return;
+        }
         const hash = '';
         const changedKeys = [];
-        for (const [key, value] of entries(searchObj)) {
-            if (!(key in query) || !_.isEqual(value, query[key])) {
+        for (const [key, value] of entries(stateQuery)) {
+            if (!(key in query) || !_.isEqual(value, stateQuery[key])) {
                 changedKeys.push(key);
             }
         }
         for (const [key, value] of entries(query)) {
-            if (!changedKeys.includes(key) && (!(key in searchObj) || !_.isEqual(value, searchObj[key]))) {
+            if (!changedKeys.includes(key) && (!(key in stateQuery) || !_.isEqual(value, query[key]))) {
                 changedKeys.push(key);
             }
         }
@@ -216,7 +223,7 @@ export function parseQueryParams({ params }) {
         else {
             router.replace(url, as, options);
         }
-    }, [pathname, router.pathname, search,]);
+    }, [pathname, router.pathname, search, isReady]);
     return fromEntries(entries(state)
         .map(([k, { val, set, }]) => [k, [val, set,]]));
 }
