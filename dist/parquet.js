@@ -2,15 +2,12 @@
  * Adapted from https://github.com/ilyabo/graphnavi / https://github.com/duckdb/duckdb-wasm/issues/1148
  */
 import * as duckdb from "@duckdb/duckdb-wasm";
+import { AsyncDuckDB } from "@duckdb/duckdb-wasm";
 import Worker from 'web-worker';
 import path from "path";
 import { useEffect, useState } from "react";
 const ENABLE_DUCK_LOGGING = false;
-const SilentLogger = {
-    log: () => {
-        /* do nothing */
-    },
-};
+const SilentLogger = { log: () => { }, };
 export async function nodeWorkerBundle() {
     const DUCKDB_DIST = `node_modules/@duckdb/duckdb-wasm/dist`;
     const bundle = await duckdb.selectBundle({
@@ -44,7 +41,21 @@ export async function browserWorkerBundle() {
         throw Error(`No mainWorker: ${mainWorker}`);
     }
 }
-export async function getDuckDb() {
+// Global AsyncDuckDB instance
+let dbPromise = null;
+/**
+ * Fetch global AsyncDuckDB instance; initialize if necessary
+ */
+export function getDuckDb() {
+    if (!dbPromise) {
+        dbPromise = initDuckDb();
+    }
+    return dbPromise;
+}
+/**
+ * Initialize global AsyncDuckDB instance
+ */
+export async function initDuckDb() {
     console.time("duckdb-wasm fetch");
     const { worker, bundle } = await (typeof window === 'undefined' ? nodeWorkerBundle() : browserWorkerBundle());
     console.timeEnd("duckdb-wasm fetch");
@@ -53,7 +64,7 @@ export async function getDuckDb() {
     const logger = ENABLE_DUCK_LOGGING
         ? new duckdb.ConsoleLogger()
         : SilentLogger;
-    const db = new duckdb.AsyncDuckDB(logger, worker);
+    const db = new AsyncDuckDB(logger, worker);
     await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
     await db.open({
         path: ":memory:",
@@ -64,36 +75,51 @@ export async function getDuckDb() {
     console.timeEnd("DB instantiation");
     return db;
 }
-export async function loadParquet(path) {
-    const query = `select * from read_parquet('${path}')`;
-    const db = await getDuckDb();
+/**
+ * Run a query against the provided DuckDB instance, round-trip through JSON to obtain plain JS objects
+ */
+export async function runQuery(db, query) {
     const conn = await db.connect();
     const result = await conn.query(query);
     const proxies = result.toArray();
+    // TODO: is there an easier / cheaper way to get plain JS objects here?
     return JSON.parse(JSON.stringify(proxies));
 }
+/**
+ * Load a parquet file from a local path or URL
+ */
+export async function loadParquet(path) {
+    const db = await getDuckDb();
+    return runQuery(db, `select * from read_parquet('${path}')`);
+}
+/**
+ * Hook for loading a parquet file or URL; starts out `null`, gets populated asynchronously
+ */
 export function useParquet(url) {
     const [data, setData] = useState(null);
     useEffect(() => {
+        if (!url)
+            return;
         loadParquet(url).then(data => setData(data));
     }, []);
     return data;
 }
-export async function parquetBuf2json(bytes, table, cb) {
-    const query = `SELECT * FROM parquet_scan('${table}')`;
+/**
+ * Convert [a byte array representing a Parquet file] to an array of records
+ */
+export async function parquetBuf2json(bytes, table) {
     const db = await getDuckDb();
     const uarr = new Uint8Array(bytes);
     await db.registerFileBuffer(table, uarr);
-    const conn = await db.connect();
-    const result = await conn.query(query);
-    const data = JSON.parse(JSON.stringify(result.toArray()));
-    cb(data);
-    return db;
+    return runQuery(db, `SELECT * FROM parquet_scan('${table}')`);
 }
+/**
+ * Hook for converting a Parquet byte array to records
+ */
 export function useParquetBuf(bytes, table) {
     const [data, setData] = useState(null);
     useEffect(() => {
-        parquetBuf2json(bytes, table, setData);
+        parquetBuf2json(bytes, table).then(data => setData(data));
     }, []);
     return data;
 }
