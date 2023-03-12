@@ -33,7 +33,7 @@ export type Plot<T = {}> = PlotSpec<T> & {
     title: string
     margin?: Partial<Margin>
     width?: number
-    height?: string | number
+    height?: number
     data?: T
     basePath?: string
 }
@@ -87,7 +87,7 @@ export function Plot<T = {}>(
     const nodeArg: NodeArg<T> = { ...layout, ...(data || {} as T) }
     const renderedSubtitle = subtitle instanceof Function ? subtitle(nodeArg) : subtitle
     const renderedChildren = children instanceof Function ? children(nodeArg) : children
-    height = style?.height || height
+    height = typeof style?.height === 'number' ? style?.height : height
     margin = { ...DEFAULT_MARGIN, ...plotMargin, ...margin }
     name = name || id
     if (src === undefined) {

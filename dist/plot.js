@@ -39,7 +39,7 @@ export function Plot({ id, name, title, subtitle, plot, width = DEFAULT_WIDTH, h
     const nodeArg = { ...layout, ...(data || {}) };
     const renderedSubtitle = subtitle instanceof Function ? subtitle(nodeArg) : subtitle;
     const renderedChildren = children instanceof Function ? children(nodeArg) : children;
-    height = style?.height || height;
+    height = typeof style?.height === 'number' ? style?.height : height;
     margin = { ...DEFAULT_MARGIN, ...plotMargin, ...margin };
     name = name || id;
     if (src === undefined) {

@@ -24,7 +24,7 @@ export type Plot<T = {}> = PlotSpec<T> & {
     title: string;
     margin?: Partial<Margin>;
     width?: number;
-    height?: string | number;
+    height?: number;
     data?: T;
     basePath?: string;
 };
