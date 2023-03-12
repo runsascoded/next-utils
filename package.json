@@ -1,6 +1,6 @@
 {
   "name": "next-utils",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "scripts": {
     "build": "tsc && cp package.json README.md next-utils*.sh dist/",
@@ -15,9 +15,9 @@
     "@vanilla-extract/css": "^1.9.2",
     "@vanilla-extract/next-plugin": "^2.1.1",
     "lodash": "^4.17.21",
-    "next": "^12.3.3",
+    "next": "^13.2.4",
     "next-transpile-modules": "^10.0.0",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^3.3.1",
     "plotly.js": "^2.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
