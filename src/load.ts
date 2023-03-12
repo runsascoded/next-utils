@@ -7,7 +7,7 @@ export async function getSync<T>(url: string) {
 }
 
 export function get<T>(url: string) {
-    return fetch(url).then<T>(data => data.json())
+    return fetch(url).then(data => data.json() as T)
 }
 
 export function loadSync<T>(relPath: string) {
