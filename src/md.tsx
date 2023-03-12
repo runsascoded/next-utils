@@ -56,10 +56,8 @@ export const renderHeading = (
 export type Components = import("mdx/types").MDXComponents
 export const components: Components = {
     a: ({ href, children }) =>
-        <Link href={href || "#"}>
-            <a target={href?.startsWith("http") ? "_blank" : "_self"}>
-                {children}
-            </a>
+        <Link href={href || "#"} target={href?.startsWith("http") ? "_blank" : "_self"}>
+            {children}
         </Link>,
     img: ({ src, placeholder, ...props}) => {
         //return <Image src={src || ''} {...props} />

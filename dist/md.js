@@ -51,8 +51,7 @@ export const renderHeading = (Tag, props) => {
     return React.createElement(Tag, { ...props });
 };
 export const components = {
-    a: ({ href, children }) => React.createElement(Link, { href: href || "#" },
-        React.createElement("a", { target: href?.startsWith("http") ? "_blank" : "_self" }, children)),
+    a: ({ href, children }) => React.createElement(Link, { href: href || "#", target: href?.startsWith("http") ? "_blank" : "_self" }, children),
     img: ({ src, placeholder, ...props }) => {
         //return <Image src={src || ''} {...props} />
         return React.createElement("img", { src: src || '', ...props });
