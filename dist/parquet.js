@@ -11,9 +11,6 @@ const SilentLogger = {
         /* do nothing */
     },
 };
-// TODO: shut DB down at some point
-let duckConn;
-let initialize;
 export async function nodeWorkerBundle() {
     const DUCKDB_DIST = `node_modules/@duckdb/duckdb-wasm/dist`;
     const bundle = await duckdb.selectBundle({
@@ -47,57 +44,30 @@ export async function browserWorkerBundle() {
         throw Error(`No mainWorker: ${mainWorker}`);
     }
 }
-export async function getDuckConn() {
-    if (duckConn) {
-        return duckConn;
-    }
-    else if (initialize) {
-        // The initialization has already been started, wait for it to finish
-        return initialize;
-    }
-    let resolve;
-    let reject;
-    initialize = new Promise((_resolve, _reject) => {
-        resolve = _resolve;
-        reject = _reject;
+export async function getDuckDb() {
+    console.time("duckdb-wasm fetch");
+    const { worker, bundle } = await (typeof window === 'undefined' ? nodeWorkerBundle() : browserWorkerBundle());
+    console.timeEnd("duckdb-wasm fetch");
+    console.log("bestBundle:", bundle);
+    console.time("DB instantiation");
+    const logger = ENABLE_DUCK_LOGGING
+        ? new duckdb.ConsoleLogger()
+        : SilentLogger;
+    const db = new duckdb.AsyncDuckDB(logger, worker);
+    await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+    await db.open({
+        path: ":memory:",
+        query: {
+            castBigIntToDouble: true,
+        },
     });
-    try {
-        console.time("duckdb-wasm fetch");
-        const { worker, bundle } = await (typeof window === 'undefined' ? nodeWorkerBundle() : browserWorkerBundle());
-        console.timeEnd("duckdb-wasm fetch");
-        console.log("bestBundle:", bundle);
-        console.time("DB instantiation");
-        const logger = ENABLE_DUCK_LOGGING
-            ? new duckdb.ConsoleLogger()
-            : SilentLogger;
-        const db = new duckdb.AsyncDuckDB(logger, worker);
-        await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
-        await db.open({
-            path: ":memory:",
-            query: {
-                castBigIntToDouble: true,
-            },
-        });
-        const conn = await db.connect();
-        // Replace conn.query to include full query in the error message
-        const connQuery = conn.query;
-        conn.query = async (q) => {
-            const stack = new Error().stack;
-            return await connQuery.call(conn, q);
-        };
-        duckConn = { db, conn, worker };
-        resolve(duckConn);
-        console.timeEnd("DB instantiation");
-    }
-    catch (err) {
-        reject(err);
-        throw err;
-    }
-    return duckConn;
+    console.timeEnd("DB instantiation");
+    return db;
 }
 export async function loadParquet(path) {
     const query = `select * from read_parquet('${path}')`;
-    const conn = (await getDuckConn()).conn;
+    const db = await getDuckDb();
+    const conn = await db.connect();
     const result = await conn.query(query);
     const proxies = result.toArray();
     return JSON.parse(JSON.stringify(proxies));
@@ -111,7 +81,7 @@ export function useParquet(url) {
 }
 export async function parquetBuf2json(bytes, table, cb) {
     const query = `SELECT * FROM parquet_scan('${table}')`;
-    const db = (await getDuckConn()).db;
+    const db = await getDuckDb();
     const uarr = new Uint8Array(bytes);
     await db.registerFileBuffer(table, uarr);
     const conn = await db.connect();
