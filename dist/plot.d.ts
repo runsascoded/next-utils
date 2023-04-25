@@ -18,6 +18,7 @@ export type PlotSpec<T = {}> = {
     src?: string;
     subtitle?: Node<T>;
     children?: Node<T>;
+    xBounds?: [number, number];
 };
 export type Plot<T = {}> = PlotSpec<T> & {
     plot: PlotParams;
@@ -39,4 +40,4 @@ export declare const DEFAULT_HEIGHT = 450;
 export declare function build<T = {}>(specs: PlotSpec<T>[], plots: {
     [id: string]: PlotParams;
 }, data: T): Plot<T>[];
-export declare function Plot<T = {}>({ id, name, title, subtitle, plot, width, height, src, margin, basePath, data, children, }: Plot<T>): JSX.Element;
+export declare function Plot<T = {}>({ id, name, title, subtitle, plot, width, height, src, margin, basePath, data, xBounds, children, }: Plot<T>): JSX.Element;

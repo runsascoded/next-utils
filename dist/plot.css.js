@@ -11,6 +11,26 @@ globalStyle(`${plot} .${plotly}`, {
 export const plotWrapper = "plot-wrapper";
 globalStyle(`${plot} .${plotWrapper}`, {
     position: "relative",
+    maxHeight: "95vh",
+    overflow: "hidden",
+});
+export const mapboxControls = "mapboxgl-ctrl-logo";
+globalStyle(`${plot} .${plotWrapper} .${mapboxControls}`, {
+    display: "none !important",
+});
+export const legendToggle = "legend-toggle";
+globalStyle(`${plot} .${plotWrapper} .${legendToggle}`, {
+    position: "absolute",
+    cursor: "pointer",
+    right: "1.3em",
+    bottom: "0.23em",
+    fontSize: "1.8em",
+    color: "grey",
+    zIndex: 100,
+});
+export const plotLegend = "legend";
+globalStyle(`${plot} .${plotWrapper} .${plotLegend}`, {
+    transition: "display 0.5s, visibility 0.5s, opacity 0.5s",
 });
 export const fallback = "fallback";
 globalStyle(`${plot} .${fallback}`, {
