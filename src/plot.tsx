@@ -3,7 +3,7 @@ import Image from "next/image";
 import dynamic from "next/dynamic";
 import * as css from "./plot.css"
 import {PlotParams} from "react-plotly.js";
-import {Data, Layout, Legend, Margin, PlotData} from "plotly.js";
+import {Data, Datum, Layout, Legend, Margin, PlotData} from "plotly.js";
 import {fromEntries, o2a} from "./objs"
 import {getBasePath} from "./basePath";
 
@@ -15,6 +15,58 @@ export type Node<T> = ReactNode | NodeFn<T>
 
 export type PlotsDict = { [id: string]: PlotParams }
 
+export type XRange = [number, number]
+export type FilterArgs = {
+    data: PlotData[]
+    // [ xs, xe ]: [number, number]
+    xRange: XRange
+}
+export type Filter = (_: FilterArgs) => PlotData[]
+
+export const filterIdxs: Filter = ({ data, xRange, }: FilterArgs) => {
+    const xs = Math.round(xRange[0])
+    const xe = Math.round(xRange[1])
+    return data.map(
+        ({x, y, ...trace}) => ({
+            x: x.slice(xs, xe),
+            y: y.slice(xs, xe),
+            ...trace,
+        })
+    )
+}
+
+export type FilterValuesArgs = {
+    keepNull?: boolean
+    mapRange?: (xRange: XRange) => XRange
+}
+export const filterValues: ({ keepNull, mapRange }: FilterValuesArgs) => Filter =
+    ({ keepNull, mapRange }) =>
+        ({ data, xRange }) => {
+            keepNull = keepNull || keepNull === undefined
+            const [ xs, xe ] = mapRange ? mapRange(xRange) : xRange
+            // xs = Math.round(xs - 0.5) + 0.5
+            // xe = Math.round(xe + 0.5) - 0.5
+            return data.map(
+                ({x, y, ...trace}) => {
+                    x = x as Datum[]
+                    y = y as Datum[]
+                    const enumerated = x.map((v, idx) => [ v, idx ]).filter(([ v ]) => (v === null ? keepNull : (xs <= v && v <= xe)))
+                    const idxs = enumerated.map(([ v, idx ]) => idx)
+                    return {
+                        x: enumerated.map(([ v ]) => v),
+                        y: y.filter((v, idx) => idxs.includes(idx)),
+                        ...trace,
+                    }
+                }
+            )
+        }
+
+export const HalfRoundWiden: (xRange: XRange) => XRange = ([ xs, xe ]) => {
+    xs = Math.round(xs - 0.5) + 0.5
+    xe = Math.round(xe + 0.5) - 0.5
+    return [ xs, xe ]
+}
+
 export type PlotSpec<T = {}> = {
     id: string
     name?: string
@@ -25,8 +77,8 @@ export type PlotSpec<T = {}> = {
     legend?: "inherit" | Legend
     src?: string
     subtitle?: Node<T>
+    filter?: Filter
     children?: Node<T>
-    xBounds?: [ number, number ]
 }
 
 export type Plot<T = {}> = PlotSpec<T> & {
@@ -68,16 +120,14 @@ export function Plot<T = {}>(
         width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT,
         src, margin,
         basePath, data,
-        xBounds,
+        filter,
         children,
     }: Plot<T>
 ) {
     const [ initialized, setInitialized ] = useState(false)
     const [ computedHeight, setComputedHeight ] = useState<number | null>(null)
     const [ showLegend, setShowLegend ] = useState(true)
-    const [ xRange, setXRange ] = useState<null | [number, number]>(xBounds && [...xBounds] || null)
-    const [ yRange, setYRange ] = useState<null | [number, number]>(null)
-    // const ref = useRef(null)
+    const [ xRange, setXRange ] = useState<null | [number, number]>(null)
     const legendRef = useRef<HTMLElement | null>(null)
     console.log("render: showLegend", showLegend)
     useEffect(() => {
@@ -96,16 +146,6 @@ export function Plot<T = {}>(
             legend.style.display = "none"
             // legend.classList.add("hidden")
         }
-/*
-        const timeout = setTimeout(() => {
-            console.log("hiding legend")
-            // legend.style.display = "none"
-            legend.style.opacity = "0"
-            legend.classList.add("hidden")
-            setShowLegend(false)
-        }, 1500)
-        return () => clearTimeout(timeout)
-*/
     }, [ showLegend, initialized, ])
     const {
         data: plotData,
@@ -129,25 +169,16 @@ export function Plot<T = {}>(
     if (src === undefined) {
         src = `plots/${name}.png`
     }
-    console.log(`${name} xRange:`, xRange, xBounds)
-    console.log(`${name} yRange:`, yRange, )//yBounds)
-    if (yaxis && 'anchor' in yaxis) {
-        delete yaxis['anchor']
-    }
-    if (xaxis && 'anchor' in xaxis) {
-        delete xaxis['anchor']
-    }
-    const newLayout: Partial<Layout> = useMemo(() => ({
+    const newLayout: Partial<Layout> = {
         margin,
         xaxis: {
-        //     range: xRange || undefined,
+            // range: xRange || undefined,
             ...(xaxis || {}),
         },
         yaxis: {
             automargin: true,
             gridcolor: "#ccc",
             autorange: true,
-            // range: undefined,
             // rangemode: xRange ? "normal" : "tozero",
             // domain: [0, 1],
             // range: yRange || undefined,
@@ -164,24 +195,12 @@ export function Plot<T = {}>(
         // dragMode: false,
         dragmode: "zoom",
         ...rest
-    }), [ xRange, yRange ])
+    }
 
     const filteredTraces: PlotData[] = useMemo(() => {
         const data = plotData as PlotData[]
-        if (xRange) {
-            const xs = Math.round(xRange[0])
-            const xe = Math.round(xRange[1])
-            return data.map(
-                ({x, y, ...trace}) => ({
-                    x: x.slice(xs, xe),
-                    y: y.slice(xs, xe),
-                    ...trace,
-                })
-            )
-        } else {
-            return data
-        }
-    }, [ xRange ])
+        return (filter && xRange) ? filter({ data, xRange }) : data
+    }, [ xRange, filter ])
 
     console.log(`${name} data:`, plotData)
     console.log(`${name} filteredTraces:`, filteredTraces)
@@ -232,46 +251,7 @@ export function Plot<T = {}>(
                         start = Math.round(start - 0.5) + 0.5
                         end = Math.round(end + 0.5) - 0.5
                         console.log("after rounding", start, end)
-                        if (xBounds) {
-                            if (start < xBounds[0]) {
-                                start = xBounds[0]
-                            }
-                            if (end > xBounds[1]) {
-                                end = xBounds[1]
-                            }
-                        }
-                        console.log("clamped:", start, end)
                         setXRange([start, end])
-                        // const xr = xRange || xBounds
-                        // if (xr) {
-                        //     let [xs, xe] = xr
-                        //     xs = Math.floor(xs)
-                        //     xe = Math.ceil(xe)
-                        //
-                        // }
-                        // const xs = Math.round(start)
-                        // const xe = Math.round(end)
-                        // console.log("x idxs:", xs, xe)
-                        // const traceBounds = (plotData as PlotData[]).map(trace => {
-                        //     const sliced = trace.y.slice(xs, xe) as number[]
-                        //     return [ Math.min(...sliced), Math.max(...sliced) ]
-                        // })
-                        // const dataMin = Math.min(...traceBounds.map(([ min ]) => min))
-                        // const dataMax = Math.max(...traceBounds.map(([ _, max ]) => max))
-                        // let [ ys, ye ] = [ dataMin * 0.98, dataMax * 1.02 ]
-                        // let [ys, ye] = [e['yaxis.range[0]'] as number, e['yaxis.range[1]'] as number,]//.map(s => s ? new Date(s) : undefined)
-                        // console.log("y start, end", ys, ye)
-                        // if (ys < 0) {
-                        //     ys = 0
-                        // }
-                        // console.log("Set y range:", ys, ye)
-                        // setYRange([ys, ye])
-
-                        // console.log("x range:", start, end)
-                        // start = start ? moment(start).subtract(1, 'month').toDate() : start
-                        // const dateRange = (!start && !end) ? 'All' : {start, end,}
-                        // // console.log("relayout:", e, start, end, dateRange,)
-                        // setDateRange(dateRange)
                     }}
                     className={css.plotly}
                     data={filteredTraces}
