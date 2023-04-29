@@ -3,7 +3,7 @@
   "version": "0.1.2",
   "type": "module",
   "scripts": {
-    "build": "tsc && cp package.json README.md next-utils*.sh dist/",
+    "build": "tsc && cp package.json package-lock.json README.md next-utils*.sh screenshots.js dist/",
     "clean": "rm -rf dist",
     "cleanbuild": "npm run clean && npm run build",
     "dev": "tsc -w"
@@ -17,7 +17,6 @@
     "@vanilla-extract/next-plugin": "^2.1.1",
     "lodash": "^4.17.21",
     "next": "^13.2.4",
-    "next-transpile-modules": "^10.0.0",
     "node-fetch": "^3.3.1",
     "plotly.js": "^2.0.0",
     "react": "^18.2.0",
@@ -43,6 +42,7 @@
   },
   "bin": {
     "nul": "next-utils-local.sh",
-    "nugh": "next-utils-github.sh"
+    "nugh": "next-utils-github.sh",
+    "nuss": "screenshots.js"
   }
 }
