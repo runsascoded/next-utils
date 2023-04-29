@@ -1,6 +1,7 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import _ from "lodash";
+import { mapEntries, mapValues } from "./objs";
 export const pathnameRegex = /[^?#]+/u;
 export const pathQueryRegex = /[^#]+/u;
 export function stringParam(push = true) {
@@ -133,19 +134,34 @@ export function llParam({ init, places, push }) {
 export function parseQueryParams({ params }) {
     const router = useRouter();
     const { isReady, query } = router;
+    const [initialized, setInitialized] = useState(false);
     const path = router.asPath;
-    const searchStr = path.replace(pathnameRegex, '');
-    const state = Object.fromEntries(Object.entries(params).map(([k, param]) => {
+    const pathSearchStr = path.replace(pathnameRegex, '');
+    const pathSearchParams = new URLSearchParams(pathSearchStr);
+    const pathQuery = fromEntries(pathSearchParams.entries());
+    const [initialQuery, setInitialQuery] = useState(pathQuery);
+    const state = mapEntries(params, (k, param) => {
+        // Using the query string value (`pathQuery[k]`) initializes useState with a value that matches what it's
+        // supposed to be (given the URL query params), but it can trigger
+        // https://legacy.reactjs.org/docs/error-decoder.html/?invariant=418 ("Hydration failed because the initial
+        // UI does not match what was rendered on the server", because the server is generally statically rendered
+        // with no query params.
+        //
+        // We pass `undefined` instead, which lets hydration proceed as normal, but then once `router.isReady`, we
+        // go through all the params and set them to the page's initial query-param values. That seems to work in
+        // all cases.
         const init = param.decode(undefined);
         const [val, set] = useState(init);
         return [k, { val, set, param }];
-    }));
+    });
+    console.log(`init: query:`, query, "pathQuery:", pathQuery, "state vals:", mapEntries(state, (k, { val }) => [k, val]));
+    // Configure browser "back" button
     useEffect(() => {
         window.onpopstate = e => {
             const newUrl = e.state.url;
             const newSearchStr = newUrl.replace(pathnameRegex, '');
-            console.log("onpopstate:", e, "newUrl:", newUrl, "newSearchStr:", newSearchStr, "oldSearchStr:", searchStr);
-            const newSearchObj = Object.fromEntries(new URLSearchParams(newSearchStr).entries());
+            console.log("onpopstate:", e, "newUrl:", newUrl, "newSearchStr:", newSearchStr, "oldSearchStr:", pathSearchStr);
+            const newSearchObj = fromEntries(new URLSearchParams(newSearchStr).entries());
             Object.entries(params).forEach(([k, param]) => {
                 const val = param.decode(newSearchObj[k]);
                 const { val: cur, set } = state[k];
@@ -157,13 +173,31 @@ export function parseQueryParams({ params }) {
             });
         };
     }, [path,]);
+    // Initial URL query -> state values, once `router.isReady`. This sets `initialized`, which allows subsequent
+    // effects to run.
     useEffect(() => {
-        if (!isReady) {
-            console.log("Skipping state initialization, router !isReady");
+        if (!isReady)
+            return;
+        console.log("Setting state to initial query values:", initialQuery);
+        entries(initialQuery).forEach(([k, str]) => {
+            const param = params[k];
+            const init = initialQuery[k];
+            const newVal = param.decode(init);
+            const { val, set } = state[k];
+            if (!_.isEqual(val, newVal)) {
+                console.log(`${k}: setting initial query state:`, val, newVal);
+                set(newVal);
+            }
+        });
+        setInitialized(true);
+    }, [isReady]);
+    // URL -> state values
+    useEffect(() => {
+        if (!initialized) {
+            console.log("Skipping state initialization, !initialized");
             return;
         }
-        console.log("updating states: path", path, ", searchStr:", searchStr);
-        //const newSearchObj = Object.fromEntries(new URLSearchParams(searchStr).entries())
+        console.log("updating states: path", path, ", searchStr:", pathSearchStr);
         Object.entries(params).forEach(([k, param]) => {
             const qv = query[k];
             const qval = (qv && qv instanceof Array) ? qv[0] : qv;
@@ -175,9 +209,10 @@ export function parseQueryParams({ params }) {
                 set(val);
             }
         });
-    }, [path, isReady]);
+    }, [path, initialized]);
     const match = path.match(pathnameRegex);
     const pathname = match ? match[0] : path;
+    // State -> URL query values
     const stateQuery = {};
     Object.entries(state).forEach(([k, { val, param, }]) => {
         const s = param.encode(val);
@@ -186,10 +221,10 @@ export function parseQueryParams({ params }) {
         }
     });
     const search = new URLSearchParams(stateQuery).toString();
-    console.log(`path: ${path}, searchStr: ${searchStr}, query: `, query, `, search: ${search}, stateQuery:`, stateQuery);
+    console.log(`path: ${path}, searchStr: ${pathSearchStr}, query: `, query, `, search: ${search}, stateQuery:`, stateQuery);
     useEffect(() => {
-        if (!isReady) {
-            console.log("Skipping url update!! router !isReady");
+        if (!initialized) {
+            console.log("Skipping url update!! !initialized");
             return;
         }
         const hash = '';
@@ -223,7 +258,6 @@ export function parseQueryParams({ params }) {
         else {
             router.replace(url, as, options);
         }
-    }, [pathname, router.pathname, search, isReady]);
-    return fromEntries(entries(state)
-        .map(([k, { val, set, }]) => [k, [val, set,]]));
+    }, [pathname, router.pathname, search, initialized]);
+    return mapValues(state, (k, { val, set, }) => [val, set,]);
 }
