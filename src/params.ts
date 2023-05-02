@@ -189,7 +189,7 @@ export function parseQueryParams<Params extends { [k: string]: Param<any> }, Par
         }
     )
 
-    console.log(`init: query:`, query, "pathQuery:", pathQuery, "state vals:", mapEntries(state, (k, { val }) => [ k, val ]))
+    // console.log(`init: query:`, query, "pathQuery:", pathQuery, "state vals:", mapEntries(state, (k, { val }) => [ k, val ]))
 
     // Configure browser "back" button
     useEffect(
@@ -197,14 +197,14 @@ export function parseQueryParams<Params extends { [k: string]: Param<any> }, Par
             window.onpopstate = e => {
                 const newUrl = e.state.url
                 const newSearchStr = newUrl.replace(pathnameRegex, '')
-                console.log("onpopstate:", e, "newUrl:", newUrl, "newSearchStr:", newSearchStr, "oldSearchStr:", pathSearchStr)
+                // console.log("onpopstate:", e, "newUrl:", newUrl, "newSearchStr:", newSearchStr, "oldSearchStr:", pathSearchStr)
                 const newSearchObj = fromEntries(new URLSearchParams(newSearchStr).entries())
                 Object.entries(params).forEach(([ k, param ]) => {
                     const val = param.decode(newSearchObj[k])
                     const { val: cur, set } = state[k]
                     const eq = _.isEqual(cur, val)
                     if (!eq) {
-                        console.log(`back! setting: ${k}, ${cur} -> ${val} (change: ${!eq})`)
+                        // console.log(`back! setting: ${k}, ${cur} -> ${val} (change: ${!eq})`)
                         set(val)
                     }
                 })
@@ -218,14 +218,14 @@ export function parseQueryParams<Params extends { [k: string]: Param<any> }, Par
     useEffect(
         () => {
             if (!isReady) return
-            console.log("Setting state to initial query values:", initialQuery)
+            // console.log("Setting state to initial query values:", initialQuery)
             entries(initialQuery).forEach(([ k, str ]) => {
                 const param = params[k]
                 const init = initialQuery[k]
                 const newVal = param.decode(init)
                 const { val, set } = state[k]
                 if (!_.isEqual(val, newVal)) {
-                    console.log(`${k}: setting initial query state:`, val, newVal)
+                    // console.log(`${k}: setting initial query state:`, val, newVal)
                     set(newVal)
                 }
             })
@@ -241,7 +241,7 @@ export function parseQueryParams<Params extends { [k: string]: Param<any> }, Par
                 console.log("Skipping state initialization, !initialized")
                 return
             }
-            console.log("updating states: path", path, ", searchStr:", pathSearchStr)
+            // console.log("updating states: path", path, ", searchStr:", pathSearchStr)
             Object.entries(params).forEach(([ k, param ]) => {
                 const qv = query[k]
                 const qval: string | undefined = (qv && qv instanceof Array) ? qv[0] : qv
@@ -249,7 +249,7 @@ export function parseQueryParams<Params extends { [k: string]: Param<any> }, Par
                 const { val: cur, set } = state[k]
                 const eq = _.isEqual(cur, val)
                 if (!eq) {
-                    console.log(`update state: ${k}, ${cur} -> ${val} (change: ${!eq})`)
+                    // console.log(`update state: ${k}, ${cur} -> ${val} (change: ${!eq})`)
                     set(val)
                 }
             })
@@ -269,7 +269,7 @@ export function parseQueryParams<Params extends { [k: string]: Param<any> }, Par
         }
     })
     const search = new URLSearchParams(stateQuery).toString()
-    console.log(`path: ${path}, searchStr: ${pathSearchStr}, query: `, query, `, search: ${search}, stateQuery:`, stateQuery)
+    // console.log(`path: ${path}, searchStr: ${pathSearchStr}, query: `, query, `, search: ${search}, stateQuery:`, stateQuery)
 
     useEffect(
         () => {
@@ -300,8 +300,8 @@ export function parseQueryParams<Params extends { [k: string]: Param<any> }, Par
             const url = { pathname: router.pathname, hash, search}
             const as = { pathname, hash, search, }
             const options = { shallow: true, scroll: false, }
-            const method = push ? "push" : "replace"
-            console.log(`router.${method}:`, { pathname: router.pathname, hash, search}, "changedKeys:", changedKeys)
+            // const method = push ? "push" : "replace"
+            // console.log(`router.${method}:`, { pathname: router.pathname, hash, search}, "changedKeys:", changedKeys)
             if (push) {
                 router.push(url, as, options)
             } else {
