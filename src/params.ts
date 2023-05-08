@@ -221,6 +221,10 @@ export function parseQueryParams<Params extends { [k: string]: Param<any> }, Par
             // console.log("Setting state to initial query values:", initialQuery)
             entries(initialQuery).forEach(([ k, str ]) => {
                 const param = params[k]
+                if (!param) {
+                    console.warn(`Unrecognized param: ${k}=${str}`)
+                    return
+                }
                 const init = initialQuery[k]
                 const newVal = param.decode(init)
                 const { val, set } = state[k]
@@ -280,12 +284,12 @@ export function parseQueryParams<Params extends { [k: string]: Param<any> }, Par
             const hash = ''
             const changedKeys = []
             for (const [key, value] of entries(stateQuery)) {
-                if (!(key in query) || !_.isEqual(value, stateQuery[key])) {
+                if (key in params && (!(key in query) || !_.isEqual(value, stateQuery[key]))) {
                     changedKeys.push(key)
                 }
             }
             for (const [key, value] of entries(query)) {
-                if (!changedKeys.includes(key) && (!(key in stateQuery) || !_.isEqual(value, query[key]))) {
+                if (key in params && !changedKeys.includes(key) && (!(key in stateQuery) || !_.isEqual(value, query[key]))) {
                     changedKeys.push(key)
                 }
             }
