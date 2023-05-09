@@ -44,6 +44,13 @@ export function stringsParam(init, delim) {
         },
     };
 }
+export function optStringsParam(delim) {
+    const delimiter = delim === undefined ? '_' : delim;
+    return {
+        encode: values => values && values.join(delimiter),
+        decode: s => s ? s.split(delimiter) : ((s == '') ? [] : undefined),
+    };
+}
 export function enumMultiParam(init, mapper, delim) {
     const delimiter = delim === undefined ? '_' : delim;
     const t2s = (mapper instanceof Array) ? fromEntries(mapper) : mapper;

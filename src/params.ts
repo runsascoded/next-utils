@@ -61,6 +61,14 @@ export function stringsParam(init: string[], delim?: string): Param<string[]> {
     }
 }
 
+export function optStringsParam(delim?: string): Param<undefined | string[]> {
+    const delimiter: string = delim === undefined ? '_' : delim
+    return {
+        encode: values => values && values.join(delimiter),
+        decode: s => s ? s.split(delimiter) : ((s == '') ? [] : undefined),
+    }
+}
+
 export function enumMultiParam<T extends string>(
     init: T[],
     mapper: { [k in T]: string } | [ T, string ][],
