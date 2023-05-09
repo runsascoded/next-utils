@@ -26,6 +26,24 @@ export function floatParam(init, push = true) {
     };
 }
 const { entries, fromEntries, keys, } = Object;
+export function stringsParam(init, delim) {
+    const delimiter = delim === undefined ? '_' : delim;
+    const encodedInit = init.join(delimiter);
+    return {
+        encode: values => {
+            const enc = values.join(delimiter);
+            if (enc === encodedInit)
+                return undefined;
+            return enc;
+        },
+        decode: s => {
+            if (!s && s !== '') {
+                return init;
+            }
+            return s.split(delimiter);
+        },
+    };
+}
 export function enumMultiParam(init, mapper, delim) {
     const delimiter = delim === undefined ? '_' : delim;
     const t2s = (mapper instanceof Array) ? fromEntries(mapper) : mapper;

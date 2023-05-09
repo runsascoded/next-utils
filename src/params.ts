@@ -41,6 +41,26 @@ export function floatParam(init: number, push: boolean = true): Param<number> {
 
 const { entries, fromEntries, keys, } = Object
 
+export function stringsParam(init: string[], delim?: string): Param<string[]> {
+    const delimiter: string = delim === undefined ? '_' : delim
+
+    const encodedInit = init.join(delimiter)
+
+    return {
+        encode: values => {
+            const enc = values.join(delimiter)
+            if (enc === encodedInit) return undefined
+            return enc
+        },
+        decode: s => {
+            if (!s && s !== '') {
+                return init
+            }
+            return s.split(delimiter)
+        },
+    }
+}
+
 export function enumMultiParam<T extends string>(
     init: T[],
     mapper: { [k in T]: string } | [ T, string ][],

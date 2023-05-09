@@ -10,6 +10,7 @@ export type ParsedParam<T> = [T, Dispatch<T>];
 export declare function stringParam(push?: boolean): Param<string | undefined>;
 export declare function defStringParam(init: string, push?: boolean): Param<string>;
 export declare function floatParam(init: number, push?: boolean): Param<number>;
+export declare function stringsParam(init: string[], delim?: string): Param<string[]>;
 export declare function enumMultiParam<T extends string>(init: T[], mapper: {
     [k in T]: string;
 } | [T, string][], delim?: string): Param<T[]>;
