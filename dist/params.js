@@ -1,7 +1,8 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import _ from "lodash";
-import { mapEntries, mapValues } from "./objs";
+import { mapEntries, mapValues, o2a } from "./objs";
+import { useSet } from "./use-set";
 export const pathnameRegex = /[^?#]+/u;
 export const pathQueryRegex = /[^#]+/u;
 export function stringParam(push = true) {
@@ -26,7 +27,7 @@ export function floatParam(init, push = true) {
     };
 }
 const { entries, fromEntries, keys, } = Object;
-export function stringsParam(init, delim) {
+export function stringsParam(init = [], delim) {
     const delimiter = delim === undefined ? '_' : delim;
     const encodedInit = init.join(delimiter);
     return {
@@ -42,6 +43,7 @@ export function stringsParam(init, delim) {
             }
             return s.split(delimiter);
         },
+        use: useSet,
     };
 }
 export function optStringsParam(delim) {
@@ -142,16 +144,24 @@ export function numberArrayParam(defaultValue = []) {
 }
 export function llParam({ init, places, push }) {
     return {
-        encode: ({ lat, lng }) => (lat === init.lat && lng === init.lng)
-            ? undefined
-            : (places
-                ? `${lat.toFixed(places)}_${lng.toFixed(places)}`
-                : `${lat}_${lng}`),
+        encode: ({ lat, lng }) => {
+            if (lat === init.lat && lng === init.lng)
+                return undefined;
+            const [l, L] = places ? [lat.toFixed(places), lng.toFixed(places)] : [lat, lng];
+            return (lng < 0) ? `${l}${L}` : `${l}_${L}`;
+        },
         decode: v => {
             if (!v)
                 return init;
-            const [lat, lng] = v.split("_").map(parseFloat);
-            return { lat, lng };
+            const pieces = v.split(/ _/).map(parseFloat);
+            if (pieces.length == 2) {
+                const [lat, lng] = pieces;
+                return { lat, lng };
+            }
+            else {
+                const [lat, lng] = v.split('-').map(parseFloat);
+                return { lat, lng: -lng };
+            }
         },
         push,
     };
@@ -176,7 +186,8 @@ export function parseQueryParams({ params }) {
         // go through all the params and set them to the page's initial query-param values. That seems to work in
         // all cases.
         const init = param.decode(undefined);
-        const [val, set] = useState(init);
+        const [val, set] = (param.use || useState)(init);
+        // console.log("param", k, val, set)
         return [k, { val, set, param }];
     });
     // console.log(`init: query:`, query, "pathQuery:", pathQuery, "state vals:", mapEntries(state, (k, { val }) => [ k, val ]))
@@ -193,7 +204,12 @@ export function parseQueryParams({ params }) {
                 const eq = _.isEqual(cur, val);
                 if (!eq) {
                     // console.log(`back! setting: ${k}, ${cur} -> ${val} (change: ${!eq})`)
-                    set(val);
+                    if (set instanceof Function) {
+                        set(val);
+                    }
+                    else {
+                        set.set(val);
+                    }
                 }
             });
         };
@@ -215,7 +231,12 @@ export function parseQueryParams({ params }) {
             const { val, set } = state[k];
             if (!_.isEqual(val, newVal)) {
                 // console.log(`${k}: setting initial query state:`, val, newVal)
-                set(newVal);
+                if (set instanceof Function) {
+                    set(newVal);
+                }
+                else {
+                    set.set(newVal);
+                }
             }
         });
         setInitialized(true);
@@ -235,7 +256,12 @@ export function parseQueryParams({ params }) {
             const eq = _.isEqual(cur, val);
             if (!eq) {
                 // console.log(`update state: ${k}, ${cur} -> ${val} (change: ${!eq})`)
-                set(val);
+                if (set instanceof Function) {
+                    set(val);
+                }
+                else {
+                    set.set(val);
+                }
             }
         });
     }, [path, initialized]);
@@ -249,7 +275,7 @@ export function parseQueryParams({ params }) {
             stateQuery[k] = s;
         }
     });
-    const search = new URLSearchParams(stateQuery).toString();
+    const search = o2a(stateQuery, (k, v) => v == '' ? k : `${k}=${encodeURIComponent(v).replace(/%20/g, "+")}`).join("&");
     // console.log(`path: ${path}, searchStr: ${pathSearchStr}, query: `, query, `, search: ${search}, stateQuery:`, stateQuery)
     useEffect(() => {
         if (!initialized) {

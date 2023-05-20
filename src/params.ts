@@ -1,16 +1,17 @@
 import {useRouter} from "next/router";
 import {Dispatch, useEffect, useState} from "react";
 import _ from "lodash";
-import {mapEntries, mapValues} from "./objs";
+import {mapEntries, mapValues, o2a} from "./objs";
+import {Actions, useSet} from "./use-set";
 
 export const pathnameRegex = /[^?#]+/u;
 export const pathQueryRegex = /[^#]+/u;
 
-export type Param<T> = {
+export type Param<T, U = Dispatch<T>> = {
     encode: (t: T) => string | undefined
     decode: (v: string | undefined) => T
     push?: boolean
-    // use?: (init: Set<T>) => [Set<T>, SetSet<T>]
+    use?: (init: T) => [ T, U ]
 }
 
 export type ParsedParam<T> = [ T, Dispatch<T> ]
@@ -41,7 +42,7 @@ export function floatParam(init: number, push: boolean = true): Param<number> {
 
 const { entries, fromEntries, keys, } = Object
 
-export function stringsParam(init: string[], delim?: string): Param<string[]> {
+export function stringsParam(init: string[] = [], delim?: string): Param<string[], Actions<string>> {
     const delimiter: string = delim === undefined ? '_' : delim
 
     const encodedInit = init.join(delimiter)
@@ -58,6 +59,7 @@ export function stringsParam(init: string[], delim?: string): Param<string[]> {
             }
             return s.split(delimiter)
         },
+        use: useSet,
     }
 }
 
@@ -173,24 +175,27 @@ export type LL = { lat: number, lng: number }
 
 export function llParam({ init, places, push }: { init: LL, places?: number, push?: boolean }): Param<LL> {
     return {
-        encode: ({ lat, lng }) =>
-            (lat === init.lat && lng === init.lng)
-                ? undefined
-                : (
-                    places
-                        ? `${lat.toFixed(places)}_${lng.toFixed(places)}`
-                        : `${lat}_${lng}`
-                ),
+        encode: ({ lat, lng }) => {
+            if (lat === init.lat && lng === init.lng) return undefined
+            const [ l, L ] = places ? [ lat.toFixed(places), lng.toFixed(places) ] : [ lat, lng ]
+            return (lng < 0) ? `${l}${L}` : `${l}_${L}`
+        },
         decode: v => {
             if (!v) return init
-            const [ lat, lng ] = v.split("_").map(parseFloat)
-            return { lat, lng }
+            const pieces = v.split(/ _/).map(parseFloat)
+            if (pieces.length == 2) {
+                const [ lat, lng ] = pieces
+                return { lat, lng }
+            } else {
+                const [ lat, lng ] = v.split('-').map(parseFloat)
+                return { lat, lng: -lng }
+            }
         },
         push,
     }
 }
 
-export function parseQueryParams<Params extends { [k: string]: Param<any> }, ParsedParams>({ params }: { params: Params }): ParsedParams {
+export function parseQueryParams<Params extends { [k: string]: Param<any, any> }, ParsedParams>({ params }: { params: Params }): ParsedParams {
     const router = useRouter()
     const { isReady, query } = router
     const [ initialized, setInitialized ] = useState(false)
@@ -212,7 +217,8 @@ export function parseQueryParams<Params extends { [k: string]: Param<any> }, Par
             // go through all the params and set them to the page's initial query-param values. That seems to work in
             // all cases.
             const init = param.decode(undefined)
-            const [ val, set ] = useState(init)
+            const [ val, set ] = (param.use || useState)(init)
+            // console.log("param", k, val, set)
             return [ k, { val, set, param } ]
         }
     )
@@ -233,7 +239,11 @@ export function parseQueryParams<Params extends { [k: string]: Param<any> }, Par
                     const eq = _.isEqual(cur, val)
                     if (!eq) {
                         // console.log(`back! setting: ${k}, ${cur} -> ${val} (change: ${!eq})`)
-                        set(val)
+                        if (set instanceof Function) {
+                            set(val)
+                        } else {
+                            set.set(val)
+                        }
                     }
                 })
             };
@@ -258,7 +268,11 @@ export function parseQueryParams<Params extends { [k: string]: Param<any> }, Par
                 const { val, set } = state[k]
                 if (!_.isEqual(val, newVal)) {
                     // console.log(`${k}: setting initial query state:`, val, newVal)
-                    set(newVal)
+                    if (set instanceof Function) {
+                        set(newVal)
+                    } else {
+                        set.set(newVal)
+                    }
                 }
             })
             setInitialized(true)
@@ -282,7 +296,11 @@ export function parseQueryParams<Params extends { [k: string]: Param<any> }, Par
                 const eq = _.isEqual(cur, val)
                 if (!eq) {
                     // console.log(`update state: ${k}, ${cur} -> ${val} (change: ${!eq})`)
-                    set(val)
+                    if (set instanceof Function) {
+                        set(val)
+                    } else {
+                        set.set(val)
+                    }
                 }
             })
         },
@@ -300,7 +318,8 @@ export function parseQueryParams<Params extends { [k: string]: Param<any> }, Par
             stateQuery[k] = s
         }
     })
-    const search = new URLSearchParams(stateQuery).toString()
+
+    const search = o2a(stateQuery, (k, v) => v == '' ? k : `${k}=${encodeURIComponent(v).replace(/%20/g, "+")}`).join("&")
     // console.log(`path: ${path}, searchStr: ${pathSearchStr}, query: `, query, `, search: ${search}, stateQuery:`, stateQuery)
 
     useEffect(
