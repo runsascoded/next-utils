@@ -2,7 +2,7 @@ import {useRouter} from "next/router";
 import {Dispatch, useEffect, useState} from "react";
 import _ from "lodash";
 import {mapEntries, mapValues, o2a} from "./objs";
-import {Actions, useSet} from "./use-set";
+import {Actions, OptActions, useOptSet, useSet} from "./use-set";
 
 export const pathnameRegex = /[^?#]+/u;
 export const pathQueryRegex = /[^#]+/u;
@@ -42,11 +42,9 @@ export function floatParam(init: number, push: boolean = true): Param<number> {
 
 const { entries, fromEntries, keys, } = Object
 
-export function stringsParam(init: string[] = [], delim?: string): Param<string[], Actions<string>> {
-    const delimiter: string = delim === undefined ? '_' : delim
-
+export function stringsParam(props?: { init?: string[], delimiter?: string }): Param<string[], Actions<string>> {
+    const { init = [], delimiter = ' ' } = props || {}
     const encodedInit = init.join(delimiter)
-
     return {
         encode: values => {
             const enc = values.join(delimiter)
@@ -63,11 +61,28 @@ export function stringsParam(init: string[] = [], delim?: string): Param<string[
     }
 }
 
-export function optStringsParam(delim?: string): Param<undefined | string[]> {
-    const delimiter: string = delim === undefined ? '_' : delim
+export function optStringsParam(props?: { emptyIsUndefined?: boolean, delimiter?: string }): Param<null | string[], OptActions<string>> {
+    const { emptyIsUndefined = false, delimiter = ' ' } = props || {}
     return {
-        encode: values => values && values.join(delimiter),
-        decode: s => s ? s.split(delimiter) : ((s == '') ? [] : undefined),
+        encode: (values: string[] | null) => {
+            if (values === null) {
+                return emptyIsUndefined ? '' : undefined
+            } else if (values.length == 0) {
+                return emptyIsUndefined ? undefined : ''
+            } else {
+                return values.join(delimiter)
+            }
+        },
+        decode: (s: string | undefined): string[] | null => {
+            if (s === undefined) {
+                return emptyIsUndefined ? [] : null
+            } else if (s === '') {
+                return emptyIsUndefined ? null : []
+            } else {
+                return s.split(delimiter)
+            }
+        },
+        use: useOptSet,
     }
 }
 
@@ -171,9 +186,40 @@ export function numberArrayParam(
     }
 }
 
-export type LL = { lat: number, lng: number }
+export function parseLLs(str: string): number[] {
+    const matches = Array.from(str.matchAll(/[ +\-_]/g))
+    const lls = [] as number[]
+    let prvMatch: RegExpMatchArray | null = null
+    let startIdx = 0
+    function parseLL(endIdx: number) {
+        startIdx = prvMatch ? prvMatch.index || str.length : 0
+        let sep = prvMatch ? prvMatch[0] : ''
+        if (sep != '-') {
+            startIdx += sep.length
+        }
+        let piece = str.substring(startIdx, endIdx)
+        startIdx = endIdx
+        const float = parseFloat(piece)
+        if (isNaN(float)) {
+            throw new Error(`Invalid piece ${piece}, parsing ${str}`)
+        }
+        lls.push(float)
+    }
+    matches.forEach((match, idx) => {
+        let endIdx = match.index || str.length
+        parseLL(endIdx)
+        prvMatch = match
+    })
+    if (startIdx < str.length) {
+        parseLL(str.length)
+    }
+    // console.log("parsed LLs:", str, lls)
+    return lls
+}
 
-export function llParam({ init, places, push }: { init: LL, places?: number, push?: boolean }): Param<LL> {
+export type LL = { lat: number, lng: number }
+export type LLParam = { init: LL, places?: number, push?: boolean }
+export function llParam({ init, places, push }: LLParam): Param<LL> {
     return {
         encode: ({ lat, lng }) => {
             if (lat === init.lat && lng === init.lng) return undefined
@@ -182,18 +228,49 @@ export function llParam({ init, places, push }: { init: LL, places?: number, pus
         },
         decode: v => {
             if (!v) return init
-            const pieces = v.split(/ _/).map(parseFloat)
-            if (pieces.length == 2) {
-                const [ lat, lng ] = pieces
-                return { lat, lng }
-            } else {
-                const [ lat, lng ] = v.split('-').map(parseFloat)
-                return { lat, lng: -lng }
+            const lls = parseLLs(v)
+            if (lls.length != 2) {
+                console.warn(`Unrecognized ll value: ${v}`)
             }
+            const [ lat, lng ] = lls
+            return { lat, lng }
         },
         push,
     }
 }
+
+export type BB = { sw: LL, ne: LL }
+export type BBParam = { init: BB, places?: number, push?: boolean }
+export function bbParam({ init, places, push }: BBParam): Param<BB> {
+    return {
+        encode: ({ sw, ne }) => {
+            if (sw.lat === init.sw.lat && sw.lng === init.sw.lng && ne.lat == init.ne.lat && ne.lng == init.ne.lng) return undefined
+            const sws = places ? [ sw.lat.toFixed(places), sw.lng.toFixed(places) ] : [ sw.lat, sw.lng ]
+            const nes = places ? [ ne.lat.toFixed(places), ne.lng.toFixed(places) ] : [ ne.lat, ne.lng ]
+            const lls = [ ...sws, ...nes ]
+            let str = ''
+            lls.forEach((ll, idx) => {
+                if (idx > 0) {
+                    str += ll > 0 ? ' ' : ''
+                }
+                str += ll.toString()
+            })
+            // console.log("encoded", sw, ne, str)
+            return str
+        },
+        decode: v => {
+            if (!v) return init
+            const lls = parseLLs(v)
+            if (lls.length != 4) {
+                console.warn(`Unrecognized ll value: ${v}, ${JSON.stringify(lls)}`)
+            }
+            const [ swLat, swLng, neLat, neLng ] = lls
+            return { sw: { lat: swLat, lng: swLng }, ne: { lat: neLat, lng: neLng } }
+        },
+        push,
+    }
+}
+
 
 export function parseQueryParams<Params extends { [k: string]: Param<any, any> }, ParsedParams>({ params }: { params: Params }): ParsedParams {
     const router = useRouter()
@@ -218,12 +295,12 @@ export function parseQueryParams<Params extends { [k: string]: Param<any, any> }
             // all cases.
             const init = param.decode(undefined)
             const [ val, set ] = (param.use || useState)(init)
-            // console.log("param", k, val, set)
+            // console.log(`param-${k} init`, val, set)
             return [ k, { val, set, param } ]
         }
     )
 
-    // console.log(`init: query:`, query, "pathQuery:", pathQuery, "state vals:", mapEntries(state, (k, { val }) => [ k, val ]))
+    // console.log(`parseQueryParams init: query:`, query, "pathQuery:", pathQuery, "state vals:", mapEntries(state, (k, { val }) => [ k, val ]))
 
     // Configure browser "back" button
     useEffect(
@@ -237,6 +314,7 @@ export function parseQueryParams<Params extends { [k: string]: Param<any, any> }
                     const val = param.decode(newSearchObj[k])
                     const { val: cur, set } = state[k]
                     const eq = _.isEqual(cur, val)
+                    // console.log(`param-${k} eq? (back)`, eq, cur, val)
                     if (!eq) {
                         // console.log(`back! setting: ${k}, ${cur} -> ${val} (change: ${!eq})`)
                         if (set instanceof Function) {
@@ -266,7 +344,9 @@ export function parseQueryParams<Params extends { [k: string]: Param<any, any> }
                 const init = initialQuery[k]
                 const newVal = param.decode(init)
                 const { val, set } = state[k]
-                if (!_.isEqual(val, newVal)) {
+                const eq = _.isEqual(val, newVal)
+                // console.log(`param-${k} eq? (init from URL)`, eq, val, newVal)
+                if (!eq) {
                     // console.log(`${k}: setting initial query state:`, val, newVal)
                     if (set instanceof Function) {
                         set(newVal)
@@ -294,6 +374,7 @@ export function parseQueryParams<Params extends { [k: string]: Param<any, any> }
                 const val = param.decode(qval)
                 const { val: cur, set } = state[k]
                 const eq = _.isEqual(cur, val)
+                // console.log(`param-${k} eq? (URL)`, eq, cur, val)
                 if (!eq) {
                     // console.log(`update state: ${k}, ${cur} -> ${val} (change: ${!eq})`)
                     if (set instanceof Function) {
@@ -314,6 +395,7 @@ export function parseQueryParams<Params extends { [k: string]: Param<any, any> }
     const stateQuery: {[k: string]: string} = {}
     Object.entries(state).forEach(([ k, { val, param, } ]) => {
         const s = param.encode(val)
+        // console.log(`param-${k} state->URL:`, val, s)
         if (s !== undefined) {
             stateQuery[k] = s
         }
@@ -352,7 +434,7 @@ export function parseQueryParams<Params extends { [k: string]: Param<any, any> }
             const as = { pathname, hash, search, }
             const options = { shallow: true, scroll: false, }
             // const method = push ? "push" : "replace"
-            // console.log(`router.${method}:`, { pathname: router.pathname, hash, search}, "changedKeys:", changedKeys)
+            console.log(`router.${push ? "push" : "replace"}:`, { pathname: router.pathname, hash, search}, "changedKeys:", changedKeys)
             if (push) {
                 router.push(url, as, options)
             } else {
