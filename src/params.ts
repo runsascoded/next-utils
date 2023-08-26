@@ -51,6 +51,28 @@ export function urlParam(init: string, push: boolean = true): Param<string> {
     }
 }
 
+export function intParam(init: number, push: boolean = true): Param<number> {
+    return {
+        encode: v => v === init ? undefined : v.toString(),
+        decode: v => v ? parseInt(v) : init,
+        push,
+    }
+}
+
+export function optIntParam(push: boolean = true): Param<number | null> {
+    return {
+        encode: v => {
+            if (v === null) return undefined
+            return v.toString()
+        },
+        decode: v => {
+            if (v === undefined) return null
+            return parseInt(v)
+        },
+        push,
+    }
+}
+
 export function floatParam(init: number, push: boolean = true): Param<number> {
     return {
         encode: v => v === init ? undefined : v.toString(),

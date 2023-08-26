@@ -39,6 +39,28 @@ export function urlParam(init, push = true) {
         push,
     };
 }
+export function intParam(init, push = true) {
+    return {
+        encode: v => v === init ? undefined : v.toString(),
+        decode: v => v ? parseInt(v) : init,
+        push,
+    };
+}
+export function optIntParam(push = true) {
+    return {
+        encode: v => {
+            if (v === null)
+                return undefined;
+            return v.toString();
+        },
+        decode: v => {
+            if (v === undefined)
+                return null;
+            return parseInt(v);
+        },
+        push,
+    };
+}
 export function floatParam(init, push = true) {
     return {
         encode: v => v === init ? undefined : v.toString(),

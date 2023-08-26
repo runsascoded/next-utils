@@ -17,6 +17,8 @@ export declare function defStringParam(init: string, push?: boolean): Param<stri
  * @param push whether to push changes into the browser's history/navigation stack
  */
 export declare function urlParam(init: string, push?: boolean): Param<string>;
+export declare function intParam(init: number, push?: boolean): Param<number>;
+export declare function optIntParam(push?: boolean): Param<number | null>;
 export declare function floatParam(init: number, push?: boolean): Param<number>;
 export declare function stringsParam(props?: {
     init?: string[];
