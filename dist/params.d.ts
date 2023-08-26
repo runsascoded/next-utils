@@ -11,6 +11,12 @@ export type Param<T, U = Dispatch<T>> = {
 export type ParsedParam<T> = [T, Dispatch<T>];
 export declare function stringParam(push?: boolean): Param<string | undefined>;
 export declare function defStringParam(init: string, push?: boolean): Param<string>;
+/**
+ * Param for storing URLs specifically; strips off the leading "https://"
+ * @param init initial/default value, query param is omitted iff the value matches this
+ * @param push whether to push changes into the browser's history/navigation stack
+ */
+export declare function urlParam(init: string, push?: boolean): Param<string>;
 export declare function floatParam(init: number, push?: boolean): Param<number>;
 export declare function stringsParam(props?: {
     init?: string[];

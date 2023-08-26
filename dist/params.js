@@ -14,8 +14,28 @@ export function stringParam(push = true) {
 }
 export function defStringParam(init, push = true) {
     return {
-        encode: v => v,
-        decode: v => v || init,
+        encode: v => v == init ? undefined : v,
+        decode: v => v == undefined ? init : v,
+        push,
+    };
+}
+/**
+ * Param for storing URLs specifically; strips off the leading "https://"
+ * @param init initial/default value, query param is omitted iff the value matches this
+ * @param push whether to push changes into the browser's history/navigation stack
+ */
+export function urlParam(init, push = true) {
+    return {
+        encode: v => {
+            if (v == init)
+                return undefined;
+            return v.replace(/^https:\/\//, '');
+        },
+        decode: v => {
+            if (v === undefined)
+                return init;
+            return v.startsWith('http') ? v : `https://${v}`;
+        },
         push,
     };
 }
