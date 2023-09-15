@@ -38,12 +38,12 @@ entries(redirects).map(([ src, dst ]) => {
     }
     let outputs = []
     if (trailingSlash === 1 || trailingSlash === 2) {
-        const dir = `${outDir}${basePath}${src}`
+        const dir = `${outDir}${src}`
         const outPath = `${dir}/index.html`
         outputs.push({ dir, outPath })
     }
     if (trailingSlash === 0 || trailingSlash === 2) {
-        let outPath = `${outDir}${basePath}${src}`
+        let outPath = `${outDir}${src}`
         if (!outPath.endsWith(".html")) {
             outPath += ".html"
         }
