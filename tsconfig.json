@@ -8,7 +8,7 @@
     "target": "es2021",
     "module": "es2020",
     "moduleResolution": "node",
-    "plugins": [{ "name": "typescript-plugin-css-modules" }]
+    "plugins": [{ "name": "typescript-plugin-css-modules" }],
   },
-  "include": ["src", "./typings.d.ts"]
+  "include": ["src", "./typings.d.ts", "write-redirects.js"]
 }
