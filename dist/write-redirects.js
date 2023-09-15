@@ -26,7 +26,7 @@ let { basePath, outDir, file, trailingSlash, } = options
 const redirects = JSON.parse(fs.readFileSync(file).toString())
 console.log(redirects)
 
-if (!basePath.startsWith("/")) {
+if (basePath && !basePath.startsWith("/")) {
     basePath = `/${basePath}`
 }
 entries(redirects).map(([ src, dst ]) => {
