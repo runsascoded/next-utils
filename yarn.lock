@@ -1463,7 +1463,7 @@
     "table-layout" "^1.0.2"
     "typical" "^5.2.0"
 
-"commander@^2.15.1", "commander@^2.20.0", "commander@2":
+"commander@^2.15.1", "commander@^2.20.0", "commander@^2.20.3", "commander@2":
   "integrity" "sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ=="
   "resolved" "https://registry.npmjs.org/commander/-/commander-2.20.3.tgz"
   "version" "2.20.3"
@@ -4179,13 +4179,6 @@
   "integrity" "sha512-CXdUiJembsNjuToQvxayPZF9Vqht7hewsvy2sOWafLvi2awflj9mOC6bHIg50orX8IJvWKY9wYQ/zB2kogPslQ=="
   "resolved" "https://registry.npmjs.org/next-tick/-/next-tick-1.1.0.tgz"
   "version" "1.1.0"
-
-"next-transpile-modules@^10.0.0":
-  "integrity" "sha512-FyeJ++Lm2Fq31gbThiRCrJlYpIY9QaI7A3TjuhQLzOix8ChQrvn5ny4MhfIthS5cy6+uK1AhDRvxVdW17y3Xdw=="
-  "resolved" "https://registry.npmjs.org/next-transpile-modules/-/next-transpile-modules-10.0.0.tgz"
-  "version" "10.0.0"
-  dependencies:
-    "enhanced-resolve" "^5.10.0"
 
 "next@^13.2.4", "next@>=12.0.5":
   "integrity" "sha512-g1I30317cThkEpvzfXujf0O4wtaQHtDCLhlivwlTJ885Ld+eOgcz7r3TGQzeU+cSRoNHtD8tsJgzxVdYojFssw=="
