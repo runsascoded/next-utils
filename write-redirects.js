@@ -4,7 +4,7 @@
 // Can be used after a `next export` to create a static site with redirects.
 import fs from "fs"
 import { dirname } from "path"
-import program from 'commander';
+import { program } from 'commander';
 
 const { entries } = Object
 

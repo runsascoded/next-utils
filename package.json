@@ -15,7 +15,7 @@
     "@next/mdx": "^13.2.4",
     "@vanilla-extract/css": "^1.9.2",
     "@vanilla-extract/next-plugin": "^2.1.1",
-    "commander": "^2.20.3",
+    "commander": "^11.0.0",
     "lodash": "^4.17.21",
     "next": "^13.2.4",
     "node-fetch": "^3.3.1",
