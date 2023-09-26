@@ -62,3 +62,14 @@ export declare function parseQueryParams<Params extends {
 }, ParsedParams>({ params }: {
     params: Params;
 }): ParsedParams;
+export declare const getHash: () => string | undefined;
+export declare function getHashMap<Params extends {
+    [k: string]: Param<any, any>;
+}>(params: Params, hash?: string): {
+    [k: string]: any;
+};
+export declare function parseHashParams<Params extends {
+    [k: string]: Param<any, any>;
+}, ParsedParams>({ params }: {
+    params: Params;
+}): ParsedParams;

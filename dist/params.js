@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import _ from "lodash";
-import { mapEntries, mapValues, o2a } from "./objs";
+import { mapEntries, mapValues, o2a, values } from "./objs";
 import { useOptSet, useSet } from "./use-set";
 export const pathnameRegex = /[^?#]+/u;
 export const pathQueryRegex = /[^#]+/u;
@@ -440,5 +440,74 @@ export function parseQueryParams({ params }) {
             router.replace(url, as, options);
         }
     }, [pathname, router.pathname, search, initialized]);
+    return mapValues(state, (k, { val, set, }) => [val, set,]);
+}
+export const getHash = () => (typeof window !== 'undefined' ? decodeURIComponent(window.location.hash.replace('#', '')) : undefined);
+export function getHashMap(params, hash) {
+    hash = hash || getHash();
+    const hashPieces = hash ? hash.split('&') : [];
+    // console.log("hashPieces:", hashPieces)
+    const hashMap = {};
+    hashPieces.forEach(piece => {
+        const [k, vStr] = piece.split('=', 2);
+        const param = params[k];
+        const val = param.decode(vStr);
+        // console.log("decoded:", k, vStr, val)
+        hashMap[k] = val;
+    });
+    // console.log("hashMap:", hashMap)
+    return hashMap;
+}
+export function parseHashParams({ params }) {
+    // console.log("parseHashParams:", useState)
+    const [initialHash, setInitialHash] = useState(getHash());
+    const state = mapEntries(params, (k, param) => {
+        const init = param.decode(undefined);
+        const [val, set] = (param.use || useState)(init);
+        // console.log(`param-${k} init`, val)
+        return [k, { val, set, param }];
+    });
+    const stateVals = values(state).map(({ val }) => val);
+    // console.log("stateVals:", stateVals)
+    const setStates = useCallback((hash) => {
+        const hashMap = getHashMap(params, hash);
+        entries(hashMap).forEach(([k, val]) => {
+            const { val: cur, set } = state[k];
+            const eq = _.isEqual(cur, val);
+            // console.log(`param ${k}, eq?`, eq, cur, val)
+            if (!eq) {
+                // console.log(`update state: ${k}, ${cur} -> ${val} (change: ${!eq})`)
+                if (set instanceof Function) {
+                    set(val);
+                }
+                else {
+                    set.set(val);
+                }
+            }
+        });
+    }, [params, state,]);
+    useEffect(() => {
+        const handleHashChange = () => {
+            const curHash = getHash();
+            // console.log("handleHashChange:", curHash)
+            setStates();
+        };
+        window.addEventListener('hashchange', handleHashChange);
+        setStates(initialHash);
+        return () => {
+            window.removeEventListener('hashchange', handleHashChange);
+        };
+    }, []);
+    // // State -> URL query values
+    useEffect(() => {
+        const stateHash = entries(state).map(([k, { val, param, }]) => {
+            const valStr = param.encode(val);
+            if (valStr === undefined)
+                return undefined;
+            return `${k}=${valStr}`;
+        }).filter(s => s).join('&');
+        // console.log("setting stateHash:", stateHash)
+        window.location.hash = stateHash ? `#${stateHash}` : ``;
+    }, stateVals);
     return mapValues(state, (k, { val, set, }) => [val, set,]);
 }
