@@ -68,6 +68,16 @@ export declare function getHashMap<Params extends {
 }>(params: Params, hash?: string): {
     [k: string]: any;
 };
+export declare function updatedHash<Params extends {
+    [k: string]: Param<any, any>;
+}>(params: Params, newVals: {
+    [k: string]: any;
+}): string;
+export declare function updateHashParams<Params extends {
+    [k: string]: Param<any, any>;
+}>(params: Params, newVals: {
+    [k: string]: any;
+}, pushState?: boolean): void;
 export declare function parseHashParams<Params extends {
     [k: string]: Param<any, any>;
 }, ParsedParams>({ params }: {

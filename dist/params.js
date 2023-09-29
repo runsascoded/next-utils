@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import _ from "lodash";
 import { mapEntries, mapValues, o2a, values } from "./objs";
 import { useOptSet, useSet } from "./use-set";
@@ -308,7 +308,7 @@ export function parseQueryParams({ params }) {
         // all cases.
         const init = param.decode(undefined);
         const [val, set] = (param.use || useState)(init);
-        // console.log(`param-${k} init`, val, set)
+        // console.log(`param ${k} init:`, val, set)
         return [k, { val, set, param }];
     });
     // console.log(`parseQueryParams init: query:`, query, "pathQuery:", pathQuery, "state vals:", mapEntries(state, (k, { val }) => [ k, val ]))
@@ -323,7 +323,7 @@ export function parseQueryParams({ params }) {
                 const val = param.decode(newSearchObj[k]);
                 const { val: cur, set } = state[k];
                 const eq = _.isEqual(cur, val);
-                // console.log(`param-${k} eq? (back)`, eq, cur, val)
+                // console.log(`param ${k} eq? (back)`, eq, cur, val)
                 if (!eq) {
                     // console.log(`back! setting: ${k}, ${cur} -> ${val} (change: ${!eq})`)
                     if (set instanceof Function) {
@@ -458,13 +458,44 @@ export function getHashMap(params, hash) {
     // console.log("hashMap:", hashMap)
     return hashMap;
 }
+export function updatedHash(params, newVals) {
+    const hashMap = getHashMap(params);
+    entries(newVals).forEach(([k, val]) => {
+        hashMap[k] = { val, param: params[k] };
+    });
+    const newHash = entries(hashMap).map(([k, { val, param, }]) => {
+        const valStr = param.encode(val);
+        if (valStr === undefined)
+            return undefined;
+        return `${k}=${valStr}`;
+    }).filter(s => s).join('&');
+    return newHash;
+}
+export function updateHashParams(params, newVals, pushState) {
+    const newHash = updatedHash(params, newVals);
+    console.log("setting new hash:", newHash);
+    if (pushState) {
+        window.history.pushState({}, '', `#${newHash}`);
+    }
+    else {
+        window.history.replaceState({}, '', `#${newHash}`);
+    }
+}
 export function parseHashParams({ params }) {
     // console.log("parseHashParams:", useState)
-    const [initialHash, setInitialHash] = useState(getHash());
+    const [initialHash, setInitialHash] = useState(() => {
+        const hash = getHash();
+        // console.log("initial hash:", hash)
+        return hash;
+    });
+    const initialHashMap = useMemo(() => getHashMap(params, initialHash), [initialHash,]);
     const state = mapEntries(params, (k, param) => {
-        const init = param.decode(undefined);
-        const [val, set] = (param.use || useState)(init);
-        // console.log(`param-${k} init`, val)
+        // const init = param.decode(undefined)
+        const [val, set] = (param.use || useState)(() => {
+            const init = initialHashMap[k];
+            // console.log(`param ${k} init:`, init)
+            return init;
+        });
         return [k, { val, set, param }];
     });
     const stateVals = values(state).map(({ val }) => val);
@@ -476,7 +507,7 @@ export function parseHashParams({ params }) {
             const eq = _.isEqual(cur, val);
             // console.log(`param ${k}, eq?`, eq, cur, val)
             if (!eq) {
-                // console.log(`update state: ${k}, ${cur} -> ${val} (change: ${!eq})`)
+                // console.log(`update state: ${k}`, cur, "->", val, `(change: ${!eq})`)
                 if (set instanceof Function) {
                     set(val);
                 }
@@ -493,7 +524,7 @@ export function parseHashParams({ params }) {
             setStates();
         };
         window.addEventListener('hashchange', handleHashChange);
-        setStates(initialHash);
+        // setStates(initialHash)
         return () => {
             window.removeEventListener('hashchange', handleHashChange);
         };
@@ -507,7 +538,8 @@ export function parseHashParams({ params }) {
             return `${k}=${valStr}`;
         }).filter(s => s).join('&');
         // console.log("setting stateHash:", stateHash)
-        window.location.hash = stateHash ? `#${stateHash}` : ``;
+        window.history.pushState({}, '', `#${stateHash}`);
+        // window.location.hash = stateHash ? `#${stateHash}` : ``
     }, stateVals);
     return mapValues(state, (k, { val, set, }) => [val, set,]);
 }
