@@ -479,22 +479,36 @@ export function updatedHash(params, newVals) {
     // console.log("updatedHash:", newHash, hashMap)
     return newHash;
 }
+export function getHistoryStateHash() {
+    const url = history.state.url;
+    let hash = url.replace(/^[^#]*#?/, '');
+    if (!hash) {
+        const as = history.state.as;
+        hash = as.replace(/^[^#]*#?/, '');
+        if (hash) {
+            console.warn(`no hash in history state url ${url}, using as ${as}`);
+        }
+        else {
+            // console.warn(`no hash in history state url ${url} or as ${as}`)
+        }
+    }
+    return hash;
+}
 export function updateHashParams(params, newVals, { push, log }) {
     const hash = updatedHash(params, newVals);
     const hashStr = `#${hash}`;
-    const url = { hash };
     if (window.location.hash == hashStr) {
         if (log)
-            console.log("updateHashParams: skipping push", url, window.location.hash, window.location.hash == hashStr);
+            console.log("updateHashParams: skipping push", window.location.hash, "→", hashStr, window.location.hash == hashStr);
     }
     else if (push) {
         if (log)
-            console.log("updateHashParams: push (pushState)", url, window.location.hash, window.location.hash == hashStr);
+            console.log("updateHashParams: push (pushState)", window.location.hash, "→", hashStr, window.location.hash == hashStr);
         window.history.pushState({ url: hashStr }, '', hashStr);
     }
     else {
         if (log)
-            console.log("updateHashParams: push (replaceState)", url, window.location.hash, window.location.hash == hashStr);
+            console.log("updateHashParams: push (replaceState)", window.location.hash, "→", hashStr, window.location.hash == hashStr);
         window.history.replaceState({ url: hashStr }, '', hashStr);
     }
     return hash;
@@ -505,17 +519,17 @@ export function updateHashParamsRouter(params, newVals, router, { push, log }) {
     const url = { hash };
     if (window.location.hash == hashStr) {
         if (log)
-            console.log("updateHashParamsRouter: skipping push", url, window.location.hash, window.location.hash == hashStr);
+            console.log("updateHashParamsRouter: skipping push", window.location.hash, "→", hashStr, window.location.hash == hashStr);
         return Promise.resolve(false);
     }
     else if (push) {
         if (log)
-            console.log("updateHashParamsRouter: push (pushState)", url, window.location.hash, window.location.hash == hashStr);
+            console.log("updateHashParamsRouter: push (pushState)", window.location.hash, "→", hashStr, window.location.hash == hashStr);
         return router.push(url, url, { shallow: true });
     }
     else {
         if (log)
-            console.log("updateHashParamsRouter: push (replaceState)", url, window.location.hash, window.location.hash == hashStr);
+            console.log("updateHashParamsRouter: push (replaceState)", window.location.hash, "→", hashStr, window.location.hash == hashStr);
         return router.replace(url, url, { shallow: true });
     }
 }
@@ -560,10 +574,7 @@ export function parseHashParams({ params, stateCb, popStateCb }) {
         const fn = (e) => {
             console.log("onpopstate", e.state, `"${e.target.location.hash}"`, `"${window.location.hash}"`, e);
             console.log("history.state:", history.state, `"${history.state.hash}"`);
-            const url = history.state.url;
-            const hash = url.replace(/^#/, '');
-            // console.log("popstate", e.state, url, "hash:", hash)
-            // const hash = e.state.hash
+            const hash = getHistoryStateHash();
             setStates(hash);
             if (popStateCb) {
                 const hashMap = getHashMap(params, hash);

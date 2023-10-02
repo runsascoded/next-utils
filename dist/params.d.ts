@@ -78,6 +78,7 @@ export declare function updatedHash<Params extends {
 }>(params: Params, newVals: {
     [k: string]: any;
 }): string;
+export declare function getHistoryStateHash(): string;
 export declare function updateHashParams<Params extends {
     [k: string]: Param<any, any>;
 }>(params: Params, newVals: {
