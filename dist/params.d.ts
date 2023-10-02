@@ -1,3 +1,4 @@
+import { NextRouter } from "next/router";
 import { Dispatch } from "react";
 import { Actions, OptActions } from "./use-set";
 export declare const pathnameRegex: RegExp;
@@ -63,11 +64,15 @@ export declare function parseQueryParams<Params extends {
     params: Params;
 }): ParsedParams;
 export declare const getHash: () => string | undefined;
+export type HashMap<T> = {
+    [k: string]: {
+        val: T;
+        param: Param<T>;
+    };
+};
 export declare function getHashMap<Params extends {
     [k: string]: Param<any, any>;
-}>(params: Params, hash?: string): {
-    [k: string]: any;
-};
+}>(params: Params, hash?: string): HashMap<any>;
 export declare function updatedHash<Params extends {
     [k: string]: Param<any, any>;
 }>(params: Params, newVals: {
@@ -77,9 +82,24 @@ export declare function updateHashParams<Params extends {
     [k: string]: Param<any, any>;
 }>(params: Params, newVals: {
     [k: string]: any;
-}, pushState?: boolean): void;
+}, { push, log }: {
+    push?: boolean;
+    log?: boolean;
+}): string;
+export declare function updateHashParamsRouter<Params extends {
+    [k: string]: Param<any, any>;
+}>(params: Params, newVals: {
+    [k: string]: any;
+}, router: NextRouter, { push, log }: {
+    push?: boolean;
+    log?: boolean;
+}): Promise<boolean>;
 export declare function parseHashParams<Params extends {
     [k: string]: Param<any, any>;
-}, ParsedParams>({ params }: {
+}, ParsedParams>({ params, stateCb, popStateCb }: {
     params: Params;
+    stateCb?: (state: {
+        [k: string]: any;
+    }) => void;
+    popStateCb?: (state: HashMap<any>) => void;
 }): ParsedParams;

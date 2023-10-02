@@ -1,4 +1,4 @@
-import {useRouter} from "next/router";
+import {NextRouter, useRouter} from "next/router";
 import {Dispatch, useCallback, useEffect, useMemo, useState} from "react";
 import _ from "lodash";
 import {mapEntries, mapValues, o2a, values} from "./objs";
@@ -490,8 +490,15 @@ export function parseQueryParams<Params extends { [k: string]: Param<any, any> }
 
 export const getHash = () => (typeof window !== 'undefined' ? decodeURIComponent(window.location.hash.replace('#', '')) : undefined);
 
-export function getHashMap<Params extends { [k: string]: Param<any, any> }>(params: Params, hash?: string) {
+export type HashMap<T> = { [k: string]: { val: T, param: Param<T> } }
+export function getHashMap<Params extends { [k: string]: Param<any, any> }>(
+    params: Params,
+    hash?: string,
+): HashMap<any> {
     hash = hash || getHash()
+    if (hash && hash.startsWith('#')) {
+        hash = hash.substring(1)
+    }
     const hashPieces = hash ? hash.split('&') : []
     // console.log("hashPieces:", hashPieces)
     const hashMap = {} as { [k: string]: any }
@@ -500,7 +507,7 @@ export function getHashMap<Params extends { [k: string]: Param<any, any> }>(para
         const param = params[k]
         const val = param.decode(vStr)
         // console.log("decoded:", k, vStr, val)
-        hashMap[k] = val;
+        hashMap[k] = { val, param };
     })
     // console.log("hashMap:", hashMap)
     return hashMap
@@ -512,31 +519,68 @@ export function updatedHash<Params extends { [k: string]: Param<any, any> }>(
 ) {
     const hashMap = getHashMap(params)
     entries(newVals).forEach(([ k, val ]) => {
-        hashMap[k] = { val, param: params[k] }
+        const param = params[k]
+        if (!param) {
+            throw Error(`Unrecognized param key: ${k}`)
+        }
+        hashMap[k] = { val, param }
     })
     const newHash = entries(hashMap).map(([ k, { val, param, } ]) => {
         const valStr = param.encode(val)
         if (valStr === undefined) return undefined
         return `${k}=${valStr}`
     }).filter(s=> s).join('&')
+    // console.log("updatedHash:", newHash, hashMap)
     return newHash
 }
 
 export function updateHashParams<Params extends { [k: string]: Param<any, any> }>(
     params: Params,
     newVals: { [k: string]: any },
-    pushState?: boolean,
-) {
-    const newHash = updatedHash(params, newVals)
-    console.log("setting new hash:", newHash)
-    if (pushState) {
-        window.history.pushState({}, '', `#${newHash}`)
+    { push, log }: { push?: boolean, log?: boolean },
+): string {
+    const hash = updatedHash(params, newVals)
+    const hashStr = `#${hash}`
+    const url = { hash }
+    if (window.location.hash == hashStr) {
+        if (log) console.log("updateHashParams: skipping push", url, window.location.hash, window.location.hash == hashStr)
+    } else if (push) {
+        if (log) console.log("updateHashParams: push (pushState)", url, window.location.hash, window.location.hash == hashStr)
+        window.history.pushState({ url: hashStr }, '', hashStr)
     } else {
-        window.history.replaceState({}, '', `#${newHash}`)
+        if (log) console.log("updateHashParams: push (replaceState)", url, window.location.hash, window.location.hash == hashStr)
+        window.history.replaceState({ url: hashStr }, '', hashStr)
     }
+    return hash
 }
 
-export function parseHashParams<Params extends { [k: string]: Param<any, any> }, ParsedParams>({ params }: { params: Params }): ParsedParams {
+export function updateHashParamsRouter<Params extends { [k: string]: Param<any, any> }>(
+    params: Params,
+    newVals: { [k: string]: any },
+    router: NextRouter,
+    { push, log }: { push?: boolean, log?: boolean },
+): Promise<boolean> {
+    const hash = updatedHash(params, newVals)
+    const hashStr = `#${hash}`
+    const url = { hash }
+    if (window.location.hash == hashStr) {
+        if (log) console.log("updateHashParamsRouter: skipping push", url, window.location.hash, window.location.hash == hashStr)
+        return Promise.resolve(false)
+    } else if (push) {
+        if (log) console.log("updateHashParamsRouter: push (pushState)", url, window.location.hash, window.location.hash == hashStr)
+        return router.push(url, url, { shallow: true })
+    } else {
+        if (log) console.log("updateHashParamsRouter: push (replaceState)", url, window.location.hash, window.location.hash == hashStr)
+        return router.replace(url, url, { shallow: true })
+    }
+}
+export function parseHashParams<Params extends { [k: string]: Param<any, any> }, ParsedParams>(
+    { params, stateCb, popStateCb }: {
+        params: Params
+        stateCb?: (state: { [k: string]: any }) => void
+        popStateCb?: (state: HashMap<any>) => void
+    }
+): ParsedParams {
     // console.log("parseHashParams:", useState)
     const [ initialHash, setInitialHash ] = useState(() => {
         const hash = getHash()
@@ -551,7 +595,7 @@ export function parseHashParams<Params extends { [k: string]: Param<any, any> },
         (k, param) => {
             // const init = param.decode(undefined)
             const [ val, set ] = (param.use || useState)(() => {
-                const init = initialHashMap[k]
+                const init = initialHashMap[k]?.val
                 // console.log(`param ${k} init:`, init)
                 return init
             })
@@ -564,12 +608,12 @@ export function parseHashParams<Params extends { [k: string]: Param<any, any> },
     const setStates = useCallback(
         (hash?: string) => {
             const hashMap = getHashMap(params, hash)
-            entries(hashMap).forEach(([ k, val ]) => {
+            entries(hashMap).forEach(([ k, { val } ]) => {
                 const { val: cur, set } = state[k]
                 const eq = _.isEqual(cur, val)
                 // console.log(`param ${k}, eq?`, eq, cur, val)
                 if (!eq) {
-                    // console.log(`update state: ${k}`, cur, "->", val, `(change: ${!eq})`)
+                    console.log(`update state: ${k}`, cur, "->", val, `(change: ${!eq})`)
                     if (set instanceof Function) {
                         set(val)
                     } else {
@@ -581,10 +625,33 @@ export function parseHashParams<Params extends { [k: string]: Param<any, any> },
         [ params, state, ]
     )
 
+    // Configure browser "back" button
+    useEffect(
+        () => {
+            const fn = (e: PopStateEvent) => {
+                console.log("onpopstate", e.state, `"${(e.target as Window).location.hash}"`, `"${window.location.hash}"`, e)
+                console.log("history.state:", history.state, `"${history.state.hash}"`)
+                const url = history.state.url as string
+                const hash = url.replace(/^#/, '')
+                // console.log("popstate", e.state, url, "hash:", hash)
+                // const hash = e.state.hash
+                setStates(hash)
+                if (popStateCb) {
+                    const hashMap = getHashMap(params, hash)
+                    popStateCb(hashMap)
+                }
+            }
+            window.addEventListener('popstate', fn);
+            return () => {
+                window.removeEventListener('popstate', fn);
+            }
+        },
+        [ setStates, popStateCb ]
+    )
+
     useEffect(() => {
         const handleHashChange = () => {
-            const curHash = getHash()
-            // console.log("handleHashChange:", curHash)
+            console.log("handleHashChange")
             setStates()
         };
         window.addEventListener('hashchange', handleHashChange);
@@ -602,8 +669,11 @@ export function parseHashParams<Params extends { [k: string]: Param<any, any> },
                 if (valStr === undefined) return undefined
                 return `${k}=${valStr}`
             }).filter(s=>s).join('&')
-            // console.log("setting stateHash:", stateHash)
-            window.history.pushState({}, '', `#${stateHash}`)
+            if (stateCb) {
+                stateCb(state)
+            }
+            // console.log("replaceState:", stateHash)
+            // window.history.replaceState({ hash: stateHash }, '', `#${stateHash}`)
             // window.location.hash = stateHash ? `#${stateHash}` : ``
         },
         stateVals,
