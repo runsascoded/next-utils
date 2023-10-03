@@ -64,15 +64,16 @@ export declare function parseQueryParams<Params extends {
     params: Params;
 }): ParsedParams;
 export declare const getHash: () => string | undefined;
+export type HashMapVal<T> = {
+    val: T;
+    param: Param<T>;
+};
 export type HashMap<T> = {
-    [k: string]: {
-        val: T;
-        param: Param<T>;
-    };
+    [k: string]: HashMapVal<T>;
 };
 export declare function getHashMap<Params extends {
     [k: string]: Param<any, any>;
-}>(params: Params, hash?: string): HashMap<any>;
+}, Out extends HashMap<any>>(params: Params, hash?: string): Out;
 export declare function updatedHash<Params extends {
     [k: string]: Param<any, any>;
 }>(params: Params, newVals: {

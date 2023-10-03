@@ -490,18 +490,22 @@ export function parseQueryParams<Params extends { [k: string]: Param<any, any> }
 
 export const getHash = () => (typeof window !== 'undefined' ? decodeURIComponent(window.location.hash.replace('#', '')) : undefined);
 
-export type HashMap<T> = { [k: string]: { val: T, param: Param<T> } }
-export function getHashMap<Params extends { [k: string]: Param<any, any> }>(
+export type HashMapVal<T> = { val: T, param: Param<T> }
+export type HashMap<T> = { [k: string]: HashMapVal<T> }
+export function getHashMap<
+    Params extends { [k: string]: Param<any, any> },
+    Out extends HashMap<any>
+>(
     params: Params,
     hash?: string,
-): HashMap<any> {
+): Out {
     hash = hash || getHash()
     if (hash && hash.startsWith('#')) {
         hash = hash.substring(1)
     }
     const hashPieces = hash ? hash.split('&') : []
     // console.log("hashPieces:", hashPieces)
-    const hashMap = {} as { [k: string]: any }
+    const hashMap = {} as HashMap<any>
     hashPieces.forEach(piece => {
         const [ k, vStr] = piece.split('=', 2)
         const param = params[k]
@@ -510,7 +514,7 @@ export function getHashMap<Params extends { [k: string]: Param<any, any> }>(
         hashMap[k] = { val, param };
     })
     // console.log("hashMap:", hashMap)
-    return hashMap
+    return hashMap as Out
 }
 
 export function updatedHash<Params extends { [k: string]: Param<any, any> }>(
