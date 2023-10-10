@@ -507,7 +507,7 @@ export function getHashMap<
     // console.log("hashPieces:", hashPieces)
     const hashMap = {} as HashMap<any>
     hashPieces.forEach(piece => {
-        const [ k, vStr] = piece.split('=', 2)
+        const [ k, vStr] = piece.split(/=(.*)/)
         const param = params[k]
         const val = param.decode(vStr)
         // console.log("decoded:", k, vStr, val)
@@ -539,6 +539,7 @@ export function updatedHash<Params extends { [k: string]: Param<any, any> }>(
 }
 
 export function getHistoryStateHash() {
+    // Assume next.js has written a `history.state` that includes `{ url: string, as: string }`
     const url = history.state.url as string
     let hash = url.replace(/^[^#]*#?/, '')
     if (!hash) {
