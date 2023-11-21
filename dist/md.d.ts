@@ -12,5 +12,8 @@ type Props = DetailedHTMLProps<HTMLAttributes<HTMLHeadingElement>, HTMLHeadingEl
 export declare const renderHeading: (Tag: "h1" | "h2" | "h3" | "h4" | "h5" | "h6", props: Props) => JSX.Element;
 export type Components = import("mdx/types").MDXComponents;
 export declare const components: Components;
-export default function Markdown(content: string): JSX.Element;
+export default function Markdown({ content, className }: {
+    content: string;
+    className?: string;
+}): JSX.Element;
 export {};

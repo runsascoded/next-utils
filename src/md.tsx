@@ -71,11 +71,12 @@ export const components: Components = {
     h6: props => renderHeading("h6", props),
 }
 
-export default function Markdown(content: string) {
+export default function Markdown({ content, className }: { content: string, className?: string }) {
     return <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw]}
         components={components}
+        className={className}
     >
         {content}
     </ReactMarkdown>

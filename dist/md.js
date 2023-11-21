@@ -63,6 +63,6 @@ export const components = {
     h5: props => renderHeading("h5", props),
     h6: props => renderHeading("h6", props),
 };
-export default function Markdown(content) {
-    return React.createElement(ReactMarkdown, { remarkPlugins: [remarkGfm], rehypePlugins: [rehypeRaw], components: components }, content);
+export default function Markdown({ content, className }) {
+    return React.createElement(ReactMarkdown, { remarkPlugins: [remarkGfm], rehypePlugins: [rehypeRaw], components: components, className: className }, content);
 }
