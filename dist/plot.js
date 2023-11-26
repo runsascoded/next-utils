@@ -65,7 +65,7 @@ export function Plot({ id, name, title, subtitle, plot, width = DEFAULT_WIDTH, h
     const [showLegend, setShowLegend] = useState(true);
     const [xRange, setXRange] = useState(null);
     const legendRef = useRef(null);
-    console.log("render: showLegend", showLegend);
+    // console.log("render: showLegend", showLegend)
     useEffect(() => {
         // if (!showLegend) return
         const legend = legendRef.current;
@@ -130,10 +130,10 @@ export function Plot({ id, name, title, subtitle, plot, width = DEFAULT_WIDTH, h
         const data = plotData;
         return (filter && xRange) ? filter({ data, xRange }) : data;
     }, [xRange, filter]);
-    console.log(`${name} data:`, plotData);
-    console.log(`${name} filteredTraces:`, filteredTraces);
-    console.log(`${name} original layout:`, layout, "rest:", rest);
-    console.log(`${name} layout:`, newLayout);
+    // console.log(`${name} data:`, plotData)
+    // console.log(`${name} filteredTraces:`, filteredTraces)
+    // console.log(`${name} original layout:`, layout, "rest:", rest)
+    // console.log(`${name} layout:`, newLayout)
     return (React.createElement("div", { id: id, key: id, className: css.plot },
         React.createElement("h2", null,
             React.createElement("a", { href: `#${id}` }, title)),

@@ -545,7 +545,7 @@ export function parseHashParams({ params, stateCb, popStateCb }) {
     const state = mapEntries(params, (k, param) => {
         // const init = param.decode(undefined)
         const [val, set] = (param.use || useState)(() => {
-            const init = initialHashMap[k]?.val;
+            const init = (k in initialHashMap) ? initialHashMap[k].val : param.decode(undefined);
             // console.log(`param ${k} init:`, init)
             return init;
         });
