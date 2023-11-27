@@ -3,7 +3,7 @@ import css from "./settings.css";
 import {Dispatch, ReactNode, useState} from "react";
 import {useRouter} from "next/router";
 import A from "../a";
-import { config } from '@fortawesome/fontawesome-svg-core'
+import { config, IconProp } from '@fortawesome/fontawesome-svg-core'
 import '@fortawesome/fontawesome-svg-core/styles.css'
 config.autoAddCss = false
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -22,10 +22,11 @@ export type Props = {
     icons?: Icon[]
     show?: [ boolean, Dispatch<boolean> ]
     className?: string
+    icon?: IconProp
     children?: ReactNode
 }
 
-export const SettingsGear = ({ icons, show, className, children }: Props) => {
+export const SettingsGear = ({ icons, show, className, icon = faGear, children }: Props) => {
     const router = useRouter()
     const basePath = router.basePath
     const [ fallbackShowSettings, setFallbackShowSettings ] = useState(false)
@@ -34,7 +35,7 @@ export const SettingsGear = ({ icons, show, className, children }: Props) => {
     return (
         <div className={className ? `${css.container} ${className}` : css.container} onMouseEnter={() => setHoverSettings(true)} onMouseLeave={() => setHoverSettings(false)}>
             <div className={css.settings}>
-                <FontAwesomeIcon className={css.gear} icon={faGear} onClick={() => {
+                <FontAwesomeIcon className={css.gear} icon={icon} onClick={() => {
                     console.log(`setShowSettings(${!showSettings})`)
                     setShowSettings(!showSettings)
                     if (showSettings) {
