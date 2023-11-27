@@ -23,15 +23,17 @@ export type Props = {
     show?: [ boolean, Dispatch<boolean> ]
     className?: string
     icon?: IconProp
+    initialSettingsHover?: boolean
+    initialSettingsShow?: boolean
     children?: ReactNode
 }
 
-export const SettingsGear = ({ icons, show, className, icon = faGear, children }: Props) => {
+export const SettingsGear = ({ icons, show, className, icon = faGear, initialSettingsHover, initialSettingsShow, children }: Props) => {
     const router = useRouter()
     const basePath = router.basePath
-    const [ fallbackShowSettings, setFallbackShowSettings ] = useState(false)
+    const [ fallbackShowSettings, setFallbackShowSettings ] = useState(!!initialSettingsShow)
     const [ showSettings, setShowSettings ] = show || [ fallbackShowSettings, setFallbackShowSettings ]
-    const [ hoverSettings, setHoverSettings ] = useState(false)
+    const [ hoverSettings, setHoverSettings ] = useState(!!initialSettingsHover)
     return (
         <div className={className ? `${css.container} ${className}` : css.container} onMouseEnter={() => setHoverSettings(true)} onMouseLeave={() => setHoverSettings(false)}>
             <div className={css.settings}>

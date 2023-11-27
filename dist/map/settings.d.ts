@@ -14,6 +14,8 @@ export type Props = {
     show?: [boolean, Dispatch<boolean>];
     className?: string;
     icon?: IconProp;
+    initialSettingsHover?: boolean;
+    initialSettingsShow?: boolean;
     children?: ReactNode;
 };
-export declare const SettingsGear: ({ icons, show, className, icon, children }: Props) => JSX.Element;
+export declare const SettingsGear: ({ icons, show, className, icon, initialSettingsHover, initialSettingsShow, children }: Props) => JSX.Element;

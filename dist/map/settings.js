@@ -8,12 +8,12 @@ import '@fortawesome/fontawesome-svg-core/styles.css';
 config.autoAddCss = false;
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGear } from '@fortawesome/free-solid-svg-icons';
-export const SettingsGear = ({ icons, show, className, icon = faGear, children }) => {
+export const SettingsGear = ({ icons, show, className, icon = faGear, initialSettingsHover, initialSettingsShow, children }) => {
     const router = useRouter();
     const basePath = router.basePath;
-    const [fallbackShowSettings, setFallbackShowSettings] = useState(false);
+    const [fallbackShowSettings, setFallbackShowSettings] = useState(!!initialSettingsShow);
     const [showSettings, setShowSettings] = show || [fallbackShowSettings, setFallbackShowSettings];
-    const [hoverSettings, setHoverSettings] = useState(false);
+    const [hoverSettings, setHoverSettings] = useState(!!initialSettingsHover);
     return (React.createElement("div", { className: className ? `${css.container} ${className}` : css.container, onMouseEnter: () => setHoverSettings(true), onMouseLeave: () => setHoverSettings(false) },
         React.createElement("div", { className: css.settings },
             React.createElement(FontAwesomeIcon, { className: css.gear, icon: icon, onClick: () => {
