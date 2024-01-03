@@ -12,7 +12,9 @@ export declare function getDuckDb(): Promise<AsyncDuckDB>;
 /**
  * Initialize global AsyncDuckDB instance
  */
-export declare function initDuckDb(): Promise<AsyncDuckDB>;
+export declare function initDuckDb(opts?: {
+    path?: string;
+}): Promise<AsyncDuckDB>;
 /**
  * Run a query against the provided DuckDB instance, round-trip through JSON to obtain plain JS objects
  */

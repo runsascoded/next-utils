@@ -35,7 +35,11 @@ export const SettingsGear = ({ icons, show, className, icon = faGear, initialSet
     const [ showSettings, setShowSettings ] = show || [ fallbackShowSettings, setFallbackShowSettings ]
     const [ hoverSettings, setHoverSettings ] = useState(!!initialSettingsHover)
     return (
-        <div className={className ? `${css.container} ${className}` : css.container} onMouseEnter={() => setHoverSettings(true)} onMouseLeave={() => setHoverSettings(false)}>
+        <div
+            className={className ? `${css.container} ${className}` : css.container}
+            onMouseEnter={() => setHoverSettings(true)}
+            onMouseLeave={() => setHoverSettings(false)}
+        >
             <div className={css.settings}>
                 <FontAwesomeIcon className={css.gear} icon={icon} onClick={() => {
                     console.log(`setShowSettings(${!showSettings})`)

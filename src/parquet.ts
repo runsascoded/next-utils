@@ -64,7 +64,8 @@ export function getDuckDb(): Promise<AsyncDuckDB> {
 /**
  * Initialize global AsyncDuckDB instance
  */
-export async function initDuckDb(): Promise<AsyncDuckDB> {
+export async function initDuckDb(opts?: { path?: string }): Promise<AsyncDuckDB> {
+    const path = opts?.path ?? ":memory:"
     console.time("duckdb-wasm fetch")
     const { worker, bundle } = await (typeof window === 'undefined' ? nodeWorkerBundle() : browserWorkerBundle())
     console.timeEnd("duckdb-wasm fetch")
@@ -76,7 +77,7 @@ export async function initDuckDb(): Promise<AsyncDuckDB> {
     const db = new AsyncDuckDB(logger, worker);
     await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
     await db.open({
-        path: ":memory:",
+        path,
         query: {
             castBigIntToDouble: true,
         },

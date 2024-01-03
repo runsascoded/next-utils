@@ -10,7 +10,7 @@
     "dev": "tsc -w"
   },
   "dependencies": {
-    "@duckdb/duckdb-wasm": "^1.24.0",
+    "@duckdb/duckdb-wasm": "^1.28.0",
     "@fortawesome/fontawesome-svg-core": "^6.4.2",
     "@fortawesome/free-solid-svg-icons": "^6.4.2",
     "@fortawesome/react-fontawesome": "^0.2.0",
