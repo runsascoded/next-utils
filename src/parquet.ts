@@ -66,11 +66,13 @@ export function getDuckDb(): Promise<AsyncDuckDB> {
  */
 export async function initDuckDb(opts?: { path?: string }): Promise<AsyncDuckDB> {
     const path = opts?.path ?? ":memory:"
-    console.time("duckdb-wasm fetch")
+    const fetchTimerKey = `duckdb-wasm fetch ${path}`
+    console.time(fetchTimerKey)
     const { worker, bundle } = await (typeof window === 'undefined' ? nodeWorkerBundle() : browserWorkerBundle())
-    console.timeEnd("duckdb-wasm fetch")
+    console.timeEnd(fetchTimerKey)
     console.log("bestBundle:", bundle)
-    console.time("DB instantiation");
+    const dbTimerKey = `duckdb-wasm instantiate ${path}`
+    console.time(dbTimerKey);
     const logger = ENABLE_DUCK_LOGGING
         ? new duckdb.ConsoleLogger()
         : SilentLogger;
@@ -82,7 +84,7 @@ export async function initDuckDb(opts?: { path?: string }): Promise<AsyncDuckDB>
             castBigIntToDouble: true,
         },
     });
-    console.timeEnd("DB instantiation");
+    console.timeEnd(dbTimerKey);
     return db
 }
 
