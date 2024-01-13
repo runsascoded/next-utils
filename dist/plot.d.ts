@@ -22,7 +22,7 @@ export declare const filterValues: ({ keepNull, mapRange }: FilterValuesArgs) =>
 export declare const HalfRoundWiden: (xRange: XRange) => XRange;
 export type PlotSpec<T = {}> = {
     id: string;
-    name?: string;
+    name: string;
     menuName?: string;
     dropdownSection?: string;
     title?: string;
@@ -34,7 +34,7 @@ export type PlotSpec<T = {}> = {
     children?: Node<T>;
 };
 export type Plot<T = {}> = PlotSpec<T> & {
-    plot: PlotParams;
+    params: PlotParams;
     title: string;
     margin?: Partial<Margin>;
     width?: number;
@@ -42,15 +42,8 @@ export type Plot<T = {}> = PlotSpec<T> & {
     data?: T;
     basePath?: string;
 };
-export declare const DEFAULT_MARGIN: {
-    t: number;
-    r: number;
-    b: number;
-    l: number;
-};
-export declare const DEFAULT_WIDTH = 800;
-export declare const DEFAULT_HEIGHT = 450;
-export declare function build<T = {}>(specs: PlotSpec<T>[], plots: {
+export declare function buildPlot<T = {}>(spec: PlotSpec<T>, params: PlotParams, data: T): Plot<T>;
+export declare function buildPlots<T = {}>(specs: PlotSpec<T>[], plots: {
     [id: string]: PlotParams;
 }, data: T): Plot<T>[];
-export declare function Plot<T = {}>({ id, name, title, subtitle, plot, width, height, src, margin, basePath, data, filter, children, }: Plot<T>): JSX.Element;
+export declare function Plot<T = {}>({ id, name, title, subtitle, params, width, height, src, margin, basePath, data, filter, children, }: Plot<T>): JSX.Element;

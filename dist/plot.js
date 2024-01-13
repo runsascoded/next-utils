@@ -1,10 +1,7 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import Image from "next/image";
-import dynamic from "next/dynamic";
+import React, { useMemo, useState } from "react";
 import * as css from "./plot.css";
 import { fromEntries, o2a } from "./objs";
-import { getBasePath } from "./basePath";
-const Plotly = dynamic(() => import("react-plotly.js"), { ssr: false });
+import PlotWrapper, { DEFAULT_HEIGHT, DEFAULT_MARGIN, DEFAULT_WIDTH } from "./plot-wrapper";
 export const filterIdxs = ({ data, xRange, }) => {
     const xs = Math.round(xRange[0]);
     const xe = Math.round(xRange[1]);
@@ -36,64 +33,42 @@ export const HalfRoundWiden = ([xs, xe]) => {
     xe = Math.round(xe + 0.5) - 0.5;
     return [xs, xe];
 };
-export const DEFAULT_MARGIN = { t: 0, r: 15, b: 0, l: 0 };
-export const DEFAULT_WIDTH = 800;
-export const DEFAULT_HEIGHT = 450;
-export function build(specs, plots, data) {
+export function buildPlot(spec, params, data) {
+    const id = spec.id;
+    let title = spec.title;
+    if (!title) {
+        const plotTitle = params.layout.title;
+        if (typeof plotTitle === 'string') {
+            title = plotTitle;
+        }
+        else if (plotTitle?.text) {
+            title = plotTitle.text;
+        }
+        else {
+            throw `No title found for plot ${id}`;
+        }
+    }
+    return { ...spec, title, params, data };
+}
+export function buildPlots(specs, plots, data) {
     const plotSpecDict = fromEntries(specs.map(spec => [spec.id, spec]));
     return o2a(plots, (id, plot) => {
         const spec = plotSpecDict[id];
-        let title = spec.title;
-        if (!title) {
-            const plotTitle = plot.layout.title;
-            if (typeof plotTitle === 'string') {
-                title = plotTitle;
-            }
-            else if (plotTitle?.text) {
-                title = plotTitle.text;
-            }
-            else {
-                throw `No title found for plot ${id}`;
-            }
-        }
-        return { ...spec, title, plot, data };
-    });
-}
-export function Plot({ id, name, title, subtitle, plot, width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT, src, margin, basePath, data, filter, children, }) {
-    const [initialized, setInitialized] = useState(false);
-    const [computedHeight, setComputedHeight] = useState(null);
-    const [showLegend, setShowLegend] = useState(true);
-    const [xRange, setXRange] = useState(null);
-    const legendRef = useRef(null);
-    // console.log("render: showLegend", showLegend)
-    useEffect(() => {
-        // if (!showLegend) return
-        const legend = legendRef.current;
-        if (!legend) {
-            console.log("No legend");
+        if (!spec)
             return;
-        }
-        if (showLegend) {
-            legend.style.opacity = "1";
-            legend.style.display = "";
-            // legend.classList.remove("hidden")
-        }
-        else {
-            legend.style.opacity = "0";
-            legend.style.display = "none";
-            // legend.classList.add("hidden")
-        }
-    }, [showLegend, initialized,]);
-    const { data: plotData, layout, style } = plot;
+        return buildPlot(spec, plot, data);
+    }).filter((p) => !!p);
+}
+export function Plot({ id, name, title, subtitle, params, width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT, src, margin, basePath, data, filter, children, }) {
+    const { data: plotData, layout, } = params;
     const { title: plotTitle, margin: plotMargin, xaxis, yaxis, template, height: plotHeight, ...rest } = layout;
     if (!data && (subtitle instanceof Function || children instanceof Function)) {
         console.warn("`data` missing for subtitle/children functions:", data, subtitle, children);
     }
-    basePath = basePath || getBasePath() || "";
+    const [xRange, setXRange] = useState(null);
     const nodeArg = { ...layout, ...(data || {}) };
     const renderedSubtitle = subtitle instanceof Function ? subtitle(nodeArg) : subtitle;
     const renderedChildren = children instanceof Function ? children(nodeArg) : children;
-    height = computedHeight !== null ? computedHeight : (typeof style?.height === 'number' ? style?.height : height);
     margin = { ...DEFAULT_MARGIN, ...plotMargin, ...margin };
     name = name || id;
     if (src === undefined) {
@@ -138,36 +113,10 @@ export function Plot({ id, name, title, subtitle, plot, width = DEFAULT_WIDTH, h
         React.createElement("h2", null,
             React.createElement("a", { href: `#${id}` }, title)),
         renderedSubtitle,
-        React.createElement("div", { className: css.plotWrapper },
-            React.createElement("div", { className: `${css.fallback} ${initialized ? css.hidden : ""}`, style: { height: `${height}px`, maxHeight: `${height}px` } }, src && React.createElement(React.Fragment, null,
-                React.createElement(Image, { alt: title, src: `${basePath}/${src}`, width: width, height: height, 
-                    // layout="responsive"
-                    loading: "lazy" }),
-                React.createElement("div", { className: css.spinner }))),
-            React.createElement(Plotly, { onInitialized: (fig, div) => {
-                    const parent = div.offsetParent;
-                    const [legend] = div.getElementsByClassName('legend');
-                    legendRef.current = legend;
-                    setInitialized(true);
-                    setComputedHeight(parent.offsetHeight);
-                }, 
-                /*
-                                    onLegendClick={e => {
-                                        console.log("legend click:", e)
-                                        setShowLegend(false)
-                                        return false
-                                    }}
-                */
-                onDoubleClick: () => setXRange(null), onRelayout: e => {
-                    if (!('xaxis.range[0]' in e && 'xaxis.range[1]' in e))
-                        return;
-                    console.log(e);
-                    let [start, end] = [e['xaxis.range[0]'], e['xaxis.range[1]'],]; //.map(s => s ? new Date(s) : undefined)
-                    console.log("start, end", start, end);
-                    start = Math.round(start - 0.5) + 0.5;
-                    end = Math.round(end + 0.5) - 0.5;
-                    console.log("after rounding", start, end);
-                    setXRange([start, end]);
-                }, className: css.plotly, data: filteredTraces, config: { displayModeBar: false, scrollZoom: false, responsive: true, }, style: { ...style, visibility: initialized ? undefined : "hidden", width: "100%" }, layout: newLayout })),
+        React.createElement(PlotWrapper
+        // id={id}
+        , { 
+            // id={id}
+            params: { ...params, data: filteredTraces, layout: newLayout }, src: src, alt: title, width: width, height: height, setXRange: setXRange, basePath: basePath }),
         renderedChildren));
 }

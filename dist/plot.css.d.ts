@@ -1,6 +1,6 @@
 export declare const plot: string;
+export declare const plotWrapper: string;
 export declare const plotly = "plotly";
-export declare const plotWrapper = "plot-wrapper";
 export declare const mapboxControls = "mapboxgl-ctrl-logo";
 export declare const legendToggle = "legend-toggle";
 export declare const plotLegend = "legend";

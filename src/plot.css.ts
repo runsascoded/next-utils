@@ -4,27 +4,33 @@ export const plot = style({
     width: "100%",
 })
 
-export const plotly = "plotly"
-globalStyle(`${plot} .${plotly}`, {
-    width: "100%",
-    position: "absolute",
-    top: 0,
+export const plotWrapper = style({
+    // position: "relative",
+    // maxHeight: "95vh",
+    // overflow: "hidden",
 })
 
-export const plotWrapper = "plot-wrapper"
-globalStyle(`${plot} .${plotWrapper}`, {
+// export const plotWrapper = "plot-wrapper"
+globalStyle(plotWrapper, {
     position: "relative",
     maxHeight: "95vh",
     overflow: "hidden",
 })
 
+export const plotly = "plotly"
+globalStyle(`${plotWrapper} .${plotly}`, {
+    width: "100%",
+    position: "absolute",
+    top: 0,
+})
+
 export const mapboxControls = "mapboxgl-ctrl-logo"
-globalStyle(`${plot} .${plotWrapper} .${mapboxControls}`, {
+globalStyle(`${plotWrapper} .${mapboxControls}`, {
     display: "none !important",
 })
 
 export const legendToggle = "legend-toggle"
-globalStyle(`${plot} .${plotWrapper} .${legendToggle}`, {
+globalStyle(`${plotWrapper} .${legendToggle}`, {
     position: "absolute",
     cursor: "pointer",
     right: "1.3em",
@@ -35,19 +41,19 @@ globalStyle(`${plot} .${plotWrapper} .${legendToggle}`, {
 })
 
 export const plotLegend = "legend"
-globalStyle(`${plot} .${plotWrapper} .${plotLegend}`, {
+globalStyle(`${plotWrapper} .${plotLegend}`, {
     transition: "display 0.5s, visibility 0.5s, opacity 0.5s",
 })
 
 export const fallback = "fallback"
-globalStyle(`${plot} .${fallback}`, {
+globalStyle(`${plotWrapper} .${fallback}`, {
     position: "relative",
     top: 0,
     width: "100%",
     backgroundColor: "rgba(250,250,250,0.8)",
 })
 
-globalStyle(`${plot} .${fallback} img`, {
+globalStyle(`${plotWrapper} .${fallback} img`, {
     zIndex: -1,
 })
 
@@ -57,7 +63,7 @@ export const spin = keyframes({
 });
 
 export const spinner = "spinner"
-globalStyle(`${plot} .${fallback} .${spinner}`, {
+globalStyle(`${plotWrapper} .${fallback} .${spinner}`, {
     position: "absolute",
     left: 0,
     right: 0,
@@ -73,7 +79,7 @@ globalStyle(`${plot} .${fallback} .${spinner}`, {
 })
 
 export const hidden = "hidden"
-globalStyle(`${plot} .${hidden}`, {
+globalStyle(`${plotWrapper} .${hidden}`, {
     visibility: "hidden",
 })
 
