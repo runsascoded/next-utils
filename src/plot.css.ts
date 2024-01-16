@@ -55,6 +55,7 @@ globalStyle(`${plotWrapper} .${fallback}`, {
 
 globalStyle(`${plotWrapper} .${fallback} img`, {
     zIndex: -1,
+    opacity: 0.5,
 })
 
 export const spin = keyframes({
