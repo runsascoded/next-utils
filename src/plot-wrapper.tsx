@@ -15,13 +15,14 @@ export type Props = {
     height?: number
     setXRange?: Dispatch<[number, number] | null>
     basePath?: string
+    className?: string
 }
 
 export const DEFAULT_MARGIN = { t: 0, r: 15, b: 0, l: 0 }
 export const DEFAULT_WIDTH = 800
 export const DEFAULT_HEIGHT = 450
 
-export default function PlotWrapper({ params, src, alt, width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT, setXRange, basePath, }: Props) {
+export default function PlotWrapper({ params, src, alt, width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT, setXRange, basePath, className, }: Props) {
     const [ initialized, setInitialized ] = useState(false)
     const [ computedHeight, setComputedHeight ] = useState<number | null>(null)
     const [ showLegend, setShowLegend ] = useState(true)
@@ -53,71 +54,69 @@ export default function PlotWrapper({ params, src, alt, width = DEFAULT_WIDTH, h
     basePath = basePath || getBasePath() || ""
     src = `${basePath}/${src}`
     return (
-        // <div className={css.plot}>
-            <div className={css.plotWrapper}>
-                <div className={`${css.fallback} ${initialized ? css.hidden : ""}`}
-                     style={{height: `${height}px`, maxHeight: `${height}px`}}>{
-                    src && <>
-                        <Image
-                            alt={alt}
-                            src={src}
-                            width={width} height={height}
-                            // layout="responsive"
-                            loading="lazy"
-                            // onClick={() => setInitialized(true)}
-                        />
-                        <div className={css.spinner}></div>
-                    </>
-                }</div>
-                {/*<div className={css.legendToggle} onClick={() => setShowLegend(!showLegend)}>*/}
-                {/*    {showLegend ? "" : "?"}*/}
-                {/*</div>*/}
-                <Plotly
-                    onInitialized={(fig, div) => {
-                        const parent = div.offsetParent as HTMLElement
-                        const [legend] = div.getElementsByClassName('legend') as any as HTMLElement[]
-                        legendRef.current = legend
-                        setInitialized(true)
-                        setComputedHeight(parent.offsetHeight)
-                    }}
-                    onDoubleClick={() => {
-                        if (setXRange) {
-                            setXRange(null)
-                        }
-                    }}
-                    onLegendClick={e => {
-                        const { curveNumber, data } = e
-                        const { name } = data[curveNumber]
-                        console.log(`legend click: ${name}`, e)
-                        return true
-                    }}
-                    onLegendDoubleClick={e => {
-                        const { curveNumber, data } = e
-                        const { name } = data[curveNumber]
-                        console.log(`legend double click ${name}:`, e)
-                        return true
-                    }}
-                    onRelayout={e => {
-                        console.log("relayout:", e)
-                        if (!('xaxis.range[0]' in e && 'xaxis.range[1]' in e)) return
-                        console.log(e)
-                        let [start, end] = [e['xaxis.range[0]'] as number, e['xaxis.range[1]'] as number,]//.map(s => s ? new Date(s) : undefined)
-                        console.log("start, end", start, end)
-                        start = Math.round(start - 0.5) + 0.5
-                        end = Math.round(end + 0.5) - 0.5
-                        console.log("after rounding", start, end)
-                        if (setXRange) {
-                            setXRange([ start, end ])
-                        }
-                    }}
-                    className={css.plotly}
-                    data={data}
-                    config={{displayModeBar: false, scrollZoom: false, responsive: true,}}
-                    style={{...style, visibility: initialized ? undefined : "hidden", width: "100%"}}
-                    layout={layout}
-                    // onClick={() => setInitialized(false)}
-                />
-            </div>
-        // </div>
+        <div className={className ? `${css.plotWrapper} ${className}` : `${css.plotWrapper}`}>
+            <div className={`${css.fallback} ${initialized ? css.hidden : ""}`}
+                 style={{height: `${height}px`, maxHeight: `${height}px`}}>{
+                src && <>
+                    <Image
+                        alt={alt}
+                        src={src}
+                        width={width} height={height}
+                        // layout="responsive"
+                        loading="lazy"
+                        // onClick={() => setInitialized(true)}
+                    />
+                    <div className={css.spinner}></div>
+                </>
+            }</div>
+            {/*<div className={css.legendToggle} onClick={() => setShowLegend(!showLegend)}>*/}
+            {/*    {showLegend ? "" : "?"}*/}
+            {/*</div>*/}
+            <Plotly
+                onInitialized={(fig, div) => {
+                    const parent = div.offsetParent as HTMLElement
+                    const [legend] = div.getElementsByClassName('legend') as any as HTMLElement[]
+                    legendRef.current = legend
+                    setInitialized(true)
+                    setComputedHeight(parent.offsetHeight)
+                }}
+                onDoubleClick={() => {
+                    if (setXRange) {
+                        setXRange(null)
+                    }
+                }}
+                onLegendClick={e => {
+                    const { curveNumber, data } = e
+                    const { name } = data[curveNumber]
+                    console.log(`legend click: ${name}`, e)
+                    return true
+                }}
+                onLegendDoubleClick={e => {
+                    const { curveNumber, data } = e
+                    const { name } = data[curveNumber]
+                    console.log(`legend double click ${name}:`, e)
+                    return true
+                }}
+                onRelayout={e => {
+                    console.log("relayout:", e)
+                    if (!('xaxis.range[0]' in e && 'xaxis.range[1]' in e)) return
+                    console.log(e)
+                    let [start, end] = [e['xaxis.range[0]'] as number, e['xaxis.range[1]'] as number,]//.map(s => s ? new Date(s) : undefined)
+                    console.log("start, end", start, end)
+                    start = Math.round(start - 0.5) + 0.5
+                    end = Math.round(end + 0.5) - 0.5
+                    console.log("after rounding", start, end)
+                    if (setXRange) {
+                        setXRange([ start, end ])
+                    }
+                }}
+                className={css.plotly}
+                data={data}
+                config={{displayModeBar: false, scrollZoom: false, responsive: true,}}
+                style={{...style, visibility: initialized ? undefined : "hidden", width: "100%"}}
+                layout={layout}
+                // onClick={() => setInitialized(false)}
+            />
+        </div>
     )
 }

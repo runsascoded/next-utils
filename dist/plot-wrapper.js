@@ -7,7 +7,7 @@ const Plotly = dynamic(() => import("react-plotly.js"), { ssr: false });
 export const DEFAULT_MARGIN = { t: 0, r: 15, b: 0, l: 0 };
 export const DEFAULT_WIDTH = 800;
 export const DEFAULT_HEIGHT = 450;
-export default function PlotWrapper({ params, src, alt, width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT, setXRange, basePath, }) {
+export default function PlotWrapper({ params, src, alt, width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT, setXRange, basePath, className, }) {
     const [initialized, setInitialized] = useState(false);
     const [computedHeight, setComputedHeight] = useState(null);
     const [showLegend, setShowLegend] = useState(true);
@@ -35,9 +35,7 @@ export default function PlotWrapper({ params, src, alt, width = DEFAULT_WIDTH, h
     height = computedHeight !== null ? computedHeight : (typeof style?.height === 'number' ? style?.height : height);
     basePath = basePath || getBasePath() || "";
     src = `${basePath}/${src}`;
-    return (
-    // <div className={css.plot}>
-    React.createElement("div", { className: css.plotWrapper },
+    return (React.createElement("div", { className: className ? `${css.plotWrapper} ${className}` : `${css.plotWrapper}` },
         React.createElement("div", { className: `${css.fallback} ${initialized ? css.hidden : ""}`, style: { height: `${height}px`, maxHeight: `${height}px` } }, src && React.createElement(React.Fragment, null,
             React.createElement(Image, { alt: alt, src: src, width: width, height: height, 
                 // layout="responsive"
@@ -76,7 +74,5 @@ export default function PlotWrapper({ params, src, alt, width = DEFAULT_WIDTH, h
                 if (setXRange) {
                     setXRange([start, end]);
                 }
-            }, className: css.plotly, data: data, config: { displayModeBar: false, scrollZoom: false, responsive: true, }, style: { ...style, visibility: initialized ? undefined : "hidden", width: "100%" }, layout: layout }))
-    // </div>
-    );
+            }, className: css.plotly, data: data, config: { displayModeBar: false, scrollZoom: false, responsive: true, }, style: { ...style, visibility: initialized ? undefined : "hidden", width: "100%" }, layout: layout })));
 }

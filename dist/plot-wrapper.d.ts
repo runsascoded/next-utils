@@ -8,6 +8,7 @@ export type Props = {
     height?: number;
     setXRange?: Dispatch<[number, number] | null>;
     basePath?: string;
+    className?: string;
 };
 export declare const DEFAULT_MARGIN: {
     t: number;
@@ -17,4 +18,4 @@ export declare const DEFAULT_MARGIN: {
 };
 export declare const DEFAULT_WIDTH = 800;
 export declare const DEFAULT_HEIGHT = 450;
-export default function PlotWrapper({ params, src, alt, width, height, setXRange, basePath, }: Props): JSX.Element;
+export default function PlotWrapper({ params, src, alt, width, height, setXRange, basePath, className, }: Props): JSX.Element;

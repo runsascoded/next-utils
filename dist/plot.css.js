@@ -2,11 +2,7 @@ import { globalStyle, keyframes, style } from '@vanilla-extract/css';
 export const plot = style({
     width: "100%",
 });
-export const plotWrapper = style({
-// position: "relative",
-// maxHeight: "95vh",
-// overflow: "hidden",
-});
+export const plotWrapper = style({});
 // export const plotWrapper = "plot-wrapper"
 globalStyle(plotWrapper, {
     position: "relative",
