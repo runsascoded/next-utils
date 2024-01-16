@@ -1,20 +1,15 @@
 /**
  * Adapted from https://github.com/ilyabo/graphnavi / https://github.com/duckdb/duckdb-wasm/issues/1148
  */
-import * as duckdb from "@duckdb/duckdb-wasm";
-import {AsyncDuckDB, DuckDBBundle} from "@duckdb/duckdb-wasm";
-import Worker from 'web-worker';
+import {AsyncDuckDB, DuckDBBundle, selectBundle} from "@duckdb/duckdb-wasm"
+import Worker from "web-worker"
 import path from "path"
-
-const ENABLE_DUCK_LOGGING = false;
-
-const SilentLogger = { log: () => {}, };
 
 type WorkerBundle = { bundle: DuckDBBundle, worker: Worker }
 
 export async function nodeWorkerBundle(): Promise<WorkerBundle> {
     const DUCKDB_DIST = `node_modules/@duckdb/duckdb-wasm/dist`
-    const bundle = await duckdb.selectBundle({
+    const bundle = await selectBundle({
         mvp: {
             mainModule: path.resolve(DUCKDB_DIST, './duckdb-mvp.wasm'),
             mainWorker: path.resolve(DUCKDB_DIST, './duckdb-node-mvp.worker.cjs'),
@@ -26,9 +21,7 @@ export async function nodeWorkerBundle(): Promise<WorkerBundle> {
     });
     const mainWorker = bundle.mainWorker
     if (mainWorker) {
-        console.log("Instantiating worker:", mainWorker)
         const worker = new Worker(mainWorker);
-        console.log("Instantiated worker")
         return { bundle, worker }
     } else {
         throw Error(`No mainWorker: ${mainWorker}`)
@@ -38,28 +31,14 @@ export async function nodeWorkerBundle(): Promise<WorkerBundle> {
 /**
  * Initialize global AsyncDuckDB instance
  */
-export async function initDuckDb(opts?: { path?: string }): Promise<AsyncDuckDB> {
-    const path = opts?.path ?? ":memory:"
-    const fetchTimerKey = `duckdb-wasm fetch ${path}`
-    console.time(fetchTimerKey)
+export async function initDuckDb(): Promise<AsyncDuckDB> {
     const { worker, bundle } = await nodeWorkerBundle()
-    console.timeEnd(fetchTimerKey)
-    console.log("bestBundle:", bundle)
-    const dbTimerKey = `duckdb-wasm instantiate ${path}`
-    console.time(dbTimerKey);
-    const logger = ENABLE_DUCK_LOGGING
-        ? new duckdb.ConsoleLogger()
-        : SilentLogger;
-    const db = new AsyncDuckDB(logger, worker);
-    console.log("instantiate db")
-    await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+    console.log("bundle:", bundle)
+    const logger = { log: () => {}, }
+    const db = new AsyncDuckDB(logger, worker)
+    console.log("instantiating db")
+    await db.instantiate(bundle.mainModule, bundle.pthreadWorker)
     console.log("instantiated db")
-    await db.open({
-        path,
-        query: {
-            castBigIntToDouble: true,
-        },
-    });
-    console.timeEnd(dbTimerKey);
+    await db.open({ path: ":memory:", query: { castBigIntToDouble: true, }, })
     return db
 }
