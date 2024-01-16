@@ -22,7 +22,9 @@ export async function nodeWorkerBundle() {
     });
     const mainWorker = bundle.mainWorker;
     if (mainWorker) {
+        console.log("Instantiating worker:", mainWorker);
         const worker = new Worker(mainWorker);
+        console.log("Instantiated worker");
         return { bundle, worker };
     }
     else {
@@ -68,7 +70,9 @@ export async function initDuckDb(opts) {
         ? new duckdb.ConsoleLogger()
         : SilentLogger;
     const db = new AsyncDuckDB(logger, worker);
+    console.log("instantiate db");
     await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+    console.log("instantiated db");
     await db.open({
         path,
         query: {
