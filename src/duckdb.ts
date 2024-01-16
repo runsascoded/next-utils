@@ -5,13 +5,10 @@ import * as duckdb from "@duckdb/duckdb-wasm";
 import {AsyncDuckDB, DuckDBBundle} from "@duckdb/duckdb-wasm";
 import Worker from 'web-worker';
 import path from "path"
-import {useEffect, useState} from "react";
 
 const ENABLE_DUCK_LOGGING = false;
 
 const SilentLogger = { log: () => {}, };
-
-// TODO: shut DB down at some point?
 
 type WorkerBundle = { bundle: DuckDBBundle, worker: Worker }
 
@@ -38,31 +35,6 @@ export async function nodeWorkerBundle(): Promise<WorkerBundle> {
     }
 }
 
-export async function browserWorkerBundle(): Promise<WorkerBundle> {
-    const allBundles = duckdb.getJsDelivrBundles();
-    const bundle = await duckdb.selectBundle(allBundles);
-    const mainWorker = bundle.mainWorker
-    if (mainWorker) {
-        const worker = await duckdb.createWorker(mainWorker)
-        return { bundle, worker }
-    } else {
-        throw Error(`No mainWorker: ${mainWorker}`)
-    }
-}
-
-// Global AsyncDuckDB instance
-let dbPromise: Promise<AsyncDuckDB> | null = null
-
-/**
- * Fetch global AsyncDuckDB instance; initialize if necessary
- */
-export function getDuckDb(): Promise<AsyncDuckDB> {
-    if (!dbPromise) {
-        dbPromise = initDuckDb()
-    }
-    return dbPromise
-}
-
 /**
  * Initialize global AsyncDuckDB instance
  */
@@ -70,7 +42,7 @@ export async function initDuckDb(opts?: { path?: string }): Promise<AsyncDuckDB>
     const path = opts?.path ?? ":memory:"
     const fetchTimerKey = `duckdb-wasm fetch ${path}`
     console.time(fetchTimerKey)
-    const { worker, bundle } = await (typeof window === 'undefined' ? nodeWorkerBundle() : browserWorkerBundle())
+    const { worker, bundle } = await nodeWorkerBundle()
     console.timeEnd(fetchTimerKey)
     console.log("bestBundle:", bundle)
     const dbTimerKey = `duckdb-wasm instantiate ${path}`
@@ -90,62 +62,4 @@ export async function initDuckDb(opts?: { path?: string }): Promise<AsyncDuckDB>
     });
     console.timeEnd(dbTimerKey);
     return db
-}
-
-/**
- * Run a query against the provided DuckDB instance, round-trip through JSON to obtain plain JS objects
- */
-export async function runQuery<T>(db: AsyncDuckDB, query: string): Promise<T[]> {
-    const conn = await db.connect()
-    const result = await conn.query(query)
-    const proxies = result.toArray()
-    // TODO: is there an easier / cheaper way to get plain JS objects here?
-    return JSON.parse(JSON.stringify(proxies)) as T[]
-}
-
-/**
- * Load a parquet file from a local path or URL
- */
-export async function loadParquet<T>(path: string): Promise<T[]> {
-    const db = await getDuckDb()
-    return runQuery(db, `select * from read_parquet('${path}')`)
-}
-
-/**
- * Hook for loading a parquet file or URL; starts out `null`, gets populated asynchronously
- */
-export function useParquet<T>(url?: string): T[] | null {
-    const [ data, setData ] = useState<T[] | null>(null)
-    useEffect(
-        () => {
-            if (!url) return
-            loadParquet<T>(url).then(data => setData(data))
-        },
-        []
-    )
-    return data
-}
-
-/**
- * Convert [a byte array representing a Parquet file] to an array of records
- */
-export async function parquetBuf2json<T>(bytes: number[] | Uint8Array, table: string): Promise<T[]> {
-    const db = await getDuckDb()
-    const uarr = new Uint8Array(bytes)
-    await db.registerFileBuffer(table, uarr)
-    return runQuery(db, `SELECT * FROM parquet_scan('${table}')`)
-}
-
-/**
- * Hook for converting a Parquet byte array to records
- */
-export function useParquetBuf<T>(bytes: number[] | Uint8Array, table: string): T[] | null {
-    const [ data, setData ] = useState<T[] | null>(null)
-    useEffect(
-        () => {
-            parquetBuf2json<T>(bytes, table).then(data => setData(data))
-        },
-        []
-    )
-    return data
 }
