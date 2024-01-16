@@ -47,7 +47,7 @@ export default function PlotWrapper({ params, src, alt, width = DEFAULT_WIDTH, h
                 const parent = div.offsetParent;
                 const [legend] = div.getElementsByClassName('legend');
                 legendRef.current = legend;
-                setInitialized(true);
+                // setInitialized(true)
                 setComputedHeight(parent.offsetHeight);
             }, onDoubleClick: () => {
                 if (setXRange) {
