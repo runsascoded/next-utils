@@ -1,0 +1,6 @@
+[submodule "packages/base"]
+	path = packages/base
+	url = https://gitlab.com/runsascoded/next-utils/base
+[submodule "packages/plotly"]
+	path = packages/plotly
+	url = https://gitlab.com/runsascoded/next-utils/plotly
