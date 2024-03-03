@@ -4,3 +4,24 @@
 [submodule "packages/plotly"]
 	path = packages/plotly
 	url = https://gitlab.com/runsascoded/next-utils/plotly
+[submodule "packages/next-plotly"]
+	path = packages/next-plotly
+	url = git@gitlab.com:runsascoded/js/next-plotly.git
+[submodule "packages/duckdb"]
+	path = packages/duckdb
+	url = https://gitlab.com/runsascoded/js/duckdb
+[submodule "packages/next-base"]
+	path = packages/next-base
+	url = https://gitlab.com/runsascoded/js/next-base
+[submodule "packages/next-leaflet"]
+	path = packages/next-leaflet
+	url = https://gitlab.com/runsascoded/js/next-leaflet
+[submodule "packages/next-markdown"]
+	path = packages/next-markdown
+	url = https://gitlab.com/runsascoded/js/next-markdown
+[submodule "packages/react-sql.js-httpvfs"]
+	path = packages/react-sql.js-httpvfs
+	url = https://gitlab.com/runsascoded/js/react-sql.js-httpvfs
+[submodule "packages/next-params"]
+	path = packages/next-params
+	url = https://gitlab.com/runsascoded/js/next-params.git
